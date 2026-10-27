@@ -1,0 +1,1937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HRMS Lite</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3EH%3C/text%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#f5f7fa; --surface:#ffffff; --border:#e5e9f2; --text:#1e293b; --muted:#64748b; --faint:#94a3b8;
+  --primary:#0f766e; --primary-hover:#115e59; --primary-soft:#f0fdfa;
+  --success:#15803d; --success-soft:#dcfce7; --warn:#b45309; --warn-soft:#fef3c7;
+  --danger:#b91c1c; --danger-soft:#fee2e2; --side:#0f172a; --side-hover:#1e293b;
+  --radius:12px; --shadow:0 1px 2px rgba(15,23,42,.04),0 1px 3px rgba(15,23,42,.06);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);
+     display:flex;min-height:100vh;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ---------- sidebar ---------- */
+nav{width:248px;background:var(--side);color:#cbd5e1;padding:22px 16px;flex-shrink:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.brand{display:flex;align-items:center;gap:12px;padding:4px 10px 22px}
+.brand-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,#14b8a6,#0f766e);
+            color:#fff;font-weight:800;display:grid;place-items:center;font-size:16px}
+.brand-name{color:#fff;font-weight:700;font-size:16px;line-height:1.2}
+.brand-sub{color:#64748b;font-size:12px}
+.nav-label{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#64748b;padding:14px 12px 6px}
+nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:none;color:#cbd5e1;
+           padding:10px 12px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:500;margin-bottom:2px;position:relative}
+nav button:hover{background:var(--side-hover);color:#fff}
+nav button.active{background:rgba(99,102,241,.18);color:#fff}
+nav button.active::before{content:"";position:absolute;left:-16px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:#5eead4}
+nav .dot{width:8px;height:8px;border-radius:50%;background:#475569;flex-shrink:0}
+nav button.active .dot{background:#5eead4}
+nav button.reset{margin-top:auto;font-size:13px;color:#fca5a5;justify-content:center;border:1px solid #334155}
+nav button.reset:hover{background:#7f1d1d;color:#fff}
+
+/* ---------- main area ---------- */
+.shell{flex:1;min-width:0;display:flex;flex-direction:column}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:22px 32px;background:var(--surface);
+        border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.topbar h1{font-size:20px;font-weight:700;letter-spacing:-.01em}
+.topbar p{color:var(--muted);font-size:13px;margin-top:2px}
+.user{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--primary-soft);color:var(--primary);display:grid;place-items:center;font-weight:700;font-size:13px}
+main{flex:1;padding:28px 32px 48px;max-width:1280px;width:100%}
+
+/* ---------- cards & panels ---------- */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--primary)}
+.card.green::before{background:var(--success)} .card.amber::before{background:var(--warn)} .card.blue::before{background:#1d4ed8}
+.card .label{color:var(--muted);font-size:13px;font-weight:500}
+.card .num{font-size:28px;font-weight:700;margin-top:6px;letter-spacing:-.02em}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow);margin-bottom:20px;overflow-x:auto}
+.panel h3{font-size:15px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+h2{font-size:15px;font-weight:600;margin:0 0 14px;color:var(--text)}
+h2 .muted{font-weight:400}
+
+/* ---------- tables ---------- */
+table{width:100%;border-collapse:separate;border-spacing:0;font-size:13.5px}
+th{text-align:left;padding:10px 12px;color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.04em;background:#f8fafc;border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child{border-radius:8px 0 0 0} th:last-child{border-radius:0 8px 0 0}
+td{text-align:left;padding:12px;border-bottom:1px solid #eef1f6;white-space:nowrap}
+tr:hover td{background:#fafbff}
+tr:last-child td{border-bottom:none}
+
+/* ---------- forms & buttons ---------- */
+form.inline{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:6px}
+input,select{padding:9px 12px;border:1px solid #d6dce8;border-radius:8px;font-size:13.5px;background:#fff;color:var(--text);outline:none;font-family:inherit}
+input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.15)}
+input.search{width:300px;margin-bottom:14px}
+button{font-family:inherit}
+button.btn{background:var(--primary);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600;margin-right:4px;transition:background .15s}
+button.btn:hover{background:var(--primary-hover)}
+button.btn:disabled{opacity:.4;cursor:not-allowed}
+button.btn.danger{background:#fff;color:var(--danger);border:1px solid #fecaca}
+button.btn.danger:hover{background:var(--danger-soft)}
+button.btn.ok{background:var(--success)} button.btn.ok:hover{background:#15803d}
+button.btn.light{background:#fff;color:var(--text);border:1px solid #d6dce8}
+button.btn.light:hover{background:#f8fafc}
+
+/* ---------- badges ---------- */
+.badge{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;display:inline-block}
+.Pending{background:var(--warn-soft);color:#92400e}
+.Approved,.Present,.Active{background:var(--success-soft);color:#166534}
+.Rejected,.Absent,.Inactive{background:var(--danger-soft);color:#991b1b}
+.muted{color:var(--faint)}
+.Scheduled{background:#ccfbf1;color:#115e59}
+.Completed{background:var(--success-soft);color:#166534}
+.Cancelled{background:#f1f5f9;color:#475569}
+
+/* ---------- performance analysis: pie charts and explanations ---------- */
+.grid2{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:28px;align-items:start}
+@media(max-width:900px){.grid2{grid-template-columns:1fr}}
+.pie{display:flex;gap:22px;align-items:center;flex-wrap:wrap}
+.pie svg{flex-shrink:0}
+.legend{list-style:none;font-size:13px;line-height:1.9}
+.legend li{display:flex;align-items:center;gap:8px}
+.sw{width:12px;height:12px;border-radius:3px;display:inline-block;flex-shrink:0}
+
+
+/* ---------- assistant ---------- */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 16px}
+.chips button{background:var(--primary-soft);color:var(--primary);border:1px solid #ccfbf1;padding:6px 12px;border-radius:999px;font-size:12.5px;font-weight:500;cursor:pointer}
+.chips button:hover{background:#ccfbf1}
+.answer{background:#f8fafc;border:1px solid var(--border);border-left:4px solid var(--primary);padding:16px 18px;border-radius:8px;font-size:14.5px;line-height:1.6;margin-top:16px}
+.answer ul{margin:8px 0 0 20px}
+.hint{color:var(--muted);font-size:13px;margin-bottom:14px}
+
+/* ---------- floating chat widget ---------- */
+#bot-fab{display:grid;place-items:center;position:fixed;right:24px;bottom:24px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;
+         background:linear-gradient(135deg,#14b8a6,#0f766e);color:#fff;font-size:26px;box-shadow:0 10px 25px rgba(79,70,229,.4);z-index:50}
+#bot-fab:hover{transform:scale(1.05)}
+#bot-panel{position:fixed;right:24px;bottom:96px;width:380px;max-width:calc(100vw - 32px);height:560px;max-height:calc(100vh - 130px);
+           background:#fff;border:1px solid var(--border);border-radius:16px;box-shadow:0 20px 50px rgba(15,23,42,.25);
+           display:none;flex-direction:column;overflow:hidden;z-index:50}
+#bot-panel.open{display:flex}
+.bot-head{background:var(--side);color:#fff;padding:14px 16px;display:flex;justify-content:space-between;align-items:center}
+.bot-head b{font-size:15px}
+.bot-sub{font-size:12px;color:#94a3b8}
+.bot-head button{background:none;border:none;color:#cbd5e1;font-size:24px;cursor:pointer;line-height:1}
+.bot-who{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--muted)}
+.bot-who select{width:100%;margin-top:4px}
+#bot-log{flex:1;overflow-y:auto;padding:14px;background:#f8fafc;display:flex;flex-direction:column;gap:10px}
+.msg{max-width:88%;padding:10px 13px;border-radius:12px;font-size:13.5px;line-height:1.5}
+.msg p{margin:0}
+.msg ul{margin:6px 0 0 18px}
+.msg.bot{background:#fff;border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px}
+.msg.me{background:var(--primary);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+.bot-form{display:flex;gap:8px;padding:12px;border-top:1px solid var(--border)}
+.bot-form input{flex:1;min-width:0}
+
+/* ---------- toasts, pager, panel headers ---------- */
+#toast-wrap{position:fixed;top:20px;right:20px;z-index:100;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.toast{background:#0f172a;color:#fff;padding:12px 16px;border-radius:10px;box-shadow:0 10px 25px rgba(15,23,42,.25);
+       font-size:13.5px;min-width:260px;max-width:380px;transition:opacity .4s,transform .4s}
+.toast.error{background:#b91c1c}
+.toast.hide{opacity:0;transform:translateX(12px)}
+.pager{display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:13px;color:var(--muted)}
+.pager button{margin-left:6px}
+.panel-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.panel-head h3{margin:0}
+
+/* ---------- progress bar (performance) ---------- */
+.bar{display:inline-block;width:120px;height:8px;background:#e5e9f2;border-radius:99px;vertical-align:middle;overflow:hidden}
+.bar span{display:block;height:100%;background:var(--primary)}
+
+/* ---------- hide / show sidebar (three-line button) ---------- */
+.menu-toggle{width:40px;height:40px;border:1px solid var(--border);border-radius:8px;background:#fff;cursor:pointer;
+             display:flex;flex-direction:column;justify-content:center;align-items:center;gap:4px;margin-right:14px;flex-shrink:0}
+.menu-toggle:hover{background:#f8fafc}
+.menu-toggle span{display:block;width:18px;height:2px;border-radius:2px;background:var(--text)}
+body.nav-collapsed nav{display:none}
+.topbar-left{display:flex;align-items:center}
+
+
+/* ---------- professional touches ---------- */
+.greet{text-align:right;line-height:1.3}
+.greet #greeting{font-weight:600;color:var(--text);font-size:13px}
+.greet #today-date{font-size:12px;color:var(--muted)}
+.foot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;padding:16px 32px;border-top:1px solid var(--border);color:var(--faint);font-size:12px;background:var(--surface)}
+.overlay{position:fixed;inset:0;background:rgba(15,23,42,.45);display:none;align-items:center;justify-content:center;z-index:200;padding:16px}
+.overlay.open{display:flex}
+.dialog{background:#fff;border-radius:14px;padding:24px;width:100%;max-width:420px;box-shadow:0 25px 60px rgba(15,23,42,.35)}
+.dialog h3{font-size:17px;margin-bottom:8px}
+.dialog p{color:var(--muted);line-height:1.5}
+.dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+button.danger-solid{background:var(--danger);color:#fff;border:none;padding:8px 14px;border-radius:8px;font-weight:600;cursor:pointer}
+button.danger-solid:hover{background:#b91c1c}
+.call-btn{display:inline-block;text-decoration:none;padding:6px 12px;border-radius:8px;font-size:13px;font-weight:600;background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0}
+.call-btn:hover{background:#d1fae5}
+@media print{
+  nav,.topbar button,.menu-toggle,#bot-fab,#bot-panel,.overlay,#toast-wrap,.foot,.btn,form,.chips,input.search,.hint{display:none !important}
+  body{display:block;background:#fff}
+  main{padding:0}
+  .topbar{position:static;box-shadow:none}
+  .panel,.card{box-shadow:none;break-inside:avoid;border-color:#cbd5e1}
+  th{background:#f1f5f9}
+}
+
+@media(max-width:900px){
+  body{flex-direction:column}
+  nav{width:100%;height:auto;position:static}
+  .topbar{padding:16px 20px}
+  main{padding:20px}
+}
+</style>
+</head>
+<body>
+<nav>
+  <div class="brand">
+    <div class="brand-mark">H</div>
+    <div><div class="brand-name">HRMS Lite</div><div class="brand-sub">People management</div></div>
+  </div>
+  <div class="nav-label">Workspace</div>
+  <button data-view="dashboard" onclick="setView('dashboard')"><span class="dot"></span>Dashboard</button>
+  <button data-view="employees" onclick="setView('employees')"><span class="dot"></span>Employees</button>
+  <button data-view="attendance" onclick="setView('attendance')"><span class="dot"></span>Attendance</button>
+  <button data-view="leave" onclick="setView('leave')"><span class="dot"></span>Leave</button>
+  <button data-view="payroll" onclick="setView('payroll')"><span class="dot"></span>Payroll</button>
+  <div class="nav-label">Talent</div>
+  <button data-view="recruitment" onclick="setView('recruitment')"><span class="dot"></span>Recruitment (ATS)</button>
+  <button data-view="performance" onclick="setView('performance')"><span class="dot"></span>Performance (PMS)</button>
+  <button data-view="radar" onclick="setView('radar')"><span class="dot"></span>Retention Radar</button>
+  <div class="nav-label">Tools</div>
+  <button data-view="assistant" onclick="setView('assistant')"><span class="dot"></span>HR Assistant</button>
+  <button class="reset" onclick="resetDemo()">Reset demo data</button>
+</nav>
+<div class="shell">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" onclick="toggleNav()" title="Show or hide sidebar" aria-label="Show or hide sidebar">
+        <span></span><span></span><span></span>
+      </button>
+      <div><h1 id="page-title"></h1><p id="page-sub"></p></div>
+    </div>
+    <div class="user"><div class="greet"><div id="greeting"></div><span id="today-date"></span></div><div class="avatar">HR</div></div>
+  </header>
+  <main id="app"></main>
+  <footer class="foot">
+    <span>HRMS Lite · Demo data for presentation only</span>
+    <span>Version 1.0</span>
+  </footer>
+</div>
+
+<button id="bot-fab" onclick="toggleBot()" title="Chat with HRMS assistant" aria-label="Open HRMS assistant">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+    <path d="M12 3v3"/><circle cx="12" cy="2.5" r="1"/>
+    <rect x="4.5" y="6.5" width="15" height="12" rx="3.5"/>
+    <circle cx="9.2" cy="12" r="1.4" fill="currentColor" stroke="none"/>
+    <circle cx="14.8" cy="12" r="1.4" fill="currentColor" stroke="none"/>
+    <path d="M9.5 15.5h5"/>
+  </svg>
+</button>
+<div id="bot-panel">
+  <div class="bot-head">
+    <div><b>HRMS Assistant</b><div class="bot-sub">Leave, attendance, payroll and HR questions</div></div>
+    <button onclick="toggleBot()" title="Close">×</button>
+  </div>
+  <div class="bot-who">
+    Who are you?
+    <select id="bot-who" onchange="setWho(this.value)"></select>
+  </div>
+  <div id="bot-log"></div>
+  <form class="bot-form" onsubmit="return botSend(event)">
+    <input name="q" placeholder="Ask a question..." autocomplete="off" required>
+    <button class="btn" type="submit">Send</button>
+  </form>
+</div>
+
+<div id="toast-wrap"></div>
+<div id="confirm-overlay" class="overlay" onclick="if(event.target===this)closeConfirm(false)">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+    <h3 id="confirm-title"></h3>
+    <p id="confirm-msg"></p>
+    <div class="dialog-actions">
+      <button class="btn light" onclick="closeConfirm(false)">Cancel</button>
+      <button class="btn danger-solid" id="confirm-ok" onclick="closeConfirm(true)">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = 'hrms-lite-v4';
+const STAGE_ORDER = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired'];
+const SOURCES = ['LinkedIn', 'Referral', 'Job board', 'Walk-in', 'Campus', 'Other'];
+const CALL_OUTCOMES = ['Reached: interested', 'Reached: call back later', 'Reached: not interested', 'No answer', 'Voicemail left'];
+const JOB_SKILLS = {
+  j1: ['JavaScript', 'SQL', 'Team leadership'], j2: ['Recruitment', 'Communication', 'Excel'],
+  j3: ['Negotiation', 'Communication', 'Team leadership'], j4: ['Excel', 'Accounting', 'SQL'],
+  j5: ['Marketing', 'Communication', 'Excel']
+};
+const SKILL_POOL = ['JavaScript', 'Python', 'SQL', 'Communication', 'Negotiation', 'Excel', 'Recruitment', 'Accounting', 'Marketing', 'Team leadership'];
+const DEPTS = ['Engineering', 'HR', 'Sales', 'Finance', 'Marketing'];
+const TITLES = {
+  dashboard: ['Dashboard', 'Overview of people, attendance and leave'],
+  employees: ['Employees', 'Manage your team members'],
+  attendance: ['Attendance', 'Check in and out and review today\'s records'],
+  leave: ['Leave management', 'Apply for leave and review requests'],
+  payroll: ['Payroll', 'Monthly salary estimates for active employees'],
+  recruitment: ['Recruitment (ATS)', 'Manage job openings and the candidate pipeline'],
+  performance: ['Performance (PMS)', 'Goals, review ratings and progress'],
+  radar: ['Retention Radar', 'Explainable attrition risk and raise simulator'],
+  assistant: ['HR Assistant', 'Ask questions about your people data']
+};
+let view = 'dashboard';
+let search = '';
+let lastEmpId = null;          // remembers the employee last discussed, for follow-up questions
+let assistantAnswer = '';
+let state = load();
+
+/* ---------- demo data: 100 employees ---------- */
+function makeEmployees(n) {
+  const first = ['Aarav','Diya','Vihaan','Ananya','Kabir','Meera','Arjun','Sneha','Rohit','Kavya',
+                 'Ishaan','Pooja','Aditya','Neha','Karan','Riya','Siddharth','Tanvi','Varun','Isha'];
+  const last = ['Mehta','Chopra','Bhatt','Srinivasan','Kaur','Thakur','Verma','Agarwal',
+                'Pandey','Chatterjee','Sawant','Pawar','Bansal','Dutta','Khanna','Wadhwa'];
+  const roles = {
+    Engineering: [['Software Engineer', 80000], ['Senior Engineer', 120000], ['QA Analyst', 60000], ['DevOps Engineer', 95000]],
+    HR:          [['HR Executive', 55000], ['Recruiter', 50000], ['HR Manager', 85000]],
+    Sales:       [['Sales Executive', 50000], ['Sales Manager', 105000]],
+    Finance:     [['Accountant', 60000], ['Finance Manager', 100000]],
+    Marketing:   [['Marketing Executive', 55000], ['Marketing Lead', 95000]]
+  };
+  const list = [];
+  for (let i = 0; i < n; i++) {
+    const f = first[i % first.length];
+    const l = last[(i + Math.floor(i / first.length)) % last.length];   // spreads surnames across the list
+    const dept = DEPTS[i % DEPTS.length];
+    const [role, base] = roles[dept][i % roles[dept].length];
+    list.push({
+      id: 'e' + (i + 1),
+      name: f + ' ' + l,
+      email: (f + '.' + l + (i + 1)).toLowerCase() + '@company.com',
+      dept, role,
+      salary: base + ((i * 1371) % 15) * 1000,
+      status: i % 17 === 0 ? 'Inactive' : 'Active'
+    });
+  }
+  return list;
+}
+function seed() {
+  const employees = makeEmployees(100);
+  const t = today();
+  // 62 people checked in today; the first 30 have also checked out
+  const attendance = employees.slice(0, 62).map((e, i) => ({
+    id: 'a' + i, empId: e.id, date: t,
+    inTime: '09:' + String(10 + (i % 45)).padStart(2, '0'),
+    outTime: i < 30 ? '18:' + String(i % 50).padStart(2, '0') : null
+  }));
+  const types = ['Casual', 'Sick', 'Earned', 'Unpaid'];
+  const statuses = ['Pending', 'Approved', 'Rejected'];
+  const reasons = ['Personal work', 'Family function', 'Medical', 'Travel', 'Festival'];
+  const leaves = Array.from({ length: 18 }, (_, i) => {
+    const start = new Date();
+    start.setDate(start.getDate() + (i % 9) - 2);
+    const end = new Date(start);
+    end.setDate(end.getDate() + (i % 3));
+    return {
+      id: 'l' + i, empId: employees[(i * 7) % 60].id, type: types[i % 4],
+      from: start.toISOString().slice(0, 10), to: end.toISOString().slice(0, 10),
+      reason: reasons[i % 5], status: statuses[i % 3]
+    };
+  });
+  // deliberate overlap so the assistant has something to find
+  leaves.push({ ...leaves[0], id: 'l99', type: 'Sick', status: 'Approved', reason: 'Doctor visit' });
+  // recruitment (ATS) demo data
+  const jobs = [
+    { id: 'j1', title: 'Senior Software Engineer', dept: 'Engineering', location: 'Panjim, Goa', openings: 2, status: 'Open', posted: daysAgo(12) },
+    { id: 'j2', title: 'HR Executive', dept: 'HR', location: 'Mumbai', openings: 1, status: 'Open', posted: daysAgo(7) },
+    { id: 'j3', title: 'Sales Manager', dept: 'Sales', location: 'Bengaluru', openings: 1, status: 'Open', posted: daysAgo(20) },
+    { id: 'j4', title: 'Financial Analyst', dept: 'Finance', location: 'Pune', openings: 1, status: 'Closed', posted: daysAgo(45) },
+    { id: 'j5', title: 'Digital Marketing Lead', dept: 'Marketing', location: 'Remote', openings: 1, status: 'Open', posted: daysAgo(3) }
+  ];
+  const stageList = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
+  const candNames = ['Ravi Kumar', 'Sana Khan', 'Tejas Shah', 'Nisha Rao', 'Yash Gupta', 'Farah Ali',
+                     'Dev Malhotra', 'Ira Bose', 'Manav Jain', 'Lakshmi Iyer', 'Omkar Patil', 'Zara Fernandes',
+                     'Harsh Vyas', 'Meghna Das', 'Kunal Mehra', 'Aditi Joshi', 'Rahul Nair', 'Sofia Dsouza',
+                     'Pranav Hegde', 'Tara Menon', 'Abhay Singh', 'Kiara Pinto', 'Nikhil Kapoor', 'Divya Rao'];
+  const candidates = candNames.map((name, i) => {
+    const stage = stageList[i % stageList.length];
+    return {
+      id: 'c' + (i + 1), name,
+      email: name.toLowerCase().replace(/[^a-z]/g, '') + '@mail.com',
+      jobId: jobs[i % jobs.length].id,
+      stage,
+      rating: (i % 5) + 1,
+      offer: (stage === 'Offer' || stage === 'Hired') ? 60000 + i * 1500 : 0,
+      applied: daysAgo(i % 25),
+      converted: false
+    };
+  });
+
+  // performance (PMS) demo data
+  const goalTitles = ['Deliver quarterly roadmap', 'Improve team process', 'Complete certification', 'Reduce ticket backlog', 'Grow key accounts'];
+  const goals = [];
+  employees.forEach((e, i) => {
+    goals.push({ id: 'g' + i, empId: e.id, title: goalTitles[i % 5], cycle: 'Q4 2026', progress: (i * 37) % 101 });
+    if (i % 2 === 0) goals.push({ id: 'gb' + i, empId: e.id, title: goalTitles[(i + 2) % 5], cycle: 'Q4 2026', progress: (i * 53) % 101 });
+  });
+  const reviews = employees.map((e, i) => ({
+    id: 'r' + i, empId: e.id, cycle: 'Q4 2026',
+    rating: i % 4 === 0 ? 0 : ((i * 3) % 5) + 1,
+    status: i % 4 === 0 ? 'Pending' : 'Completed'
+  }));
+
+  // ATS demo enrichment: skills, source of hire and hire dates
+  jobs.forEach(j => { j.skills = JOB_SKILLS[j.id] || []; });
+  candidates.forEach(c => {
+    const n = Number(c.id.slice(1)) - 1;
+    c.skills = [...new Set([SKILL_POOL[n % 10], SKILL_POOL[(n * 3) % 10], SKILL_POOL[(n * 7) % 10]])];
+    c.source = SOURCES[n % 5];
+    c.phone = '+91 9' + String(800000000 + n * 7919).slice(0, 9);
+    c.calls = n % 4 === 0 ? [{ id: 'k' + n, date: daysAgo(n % 5), outcome: CALL_OUTCOMES[n % 5], notes: 'Initial screening call' }] : [];
+    if (c.stage === 'Hired') c.hiredOn = daysAgo(Math.max(0, n % 25 - 3));
+  });
+  // interview schedule demo data: one interview for each candidate in the Interview stage
+  const slots = ['10:00', '11:30', '14:00', '15:30', '12:00', '16:00'];
+  const modes = ['Video call', 'In person', 'Phone'];
+  const activeEmps = employees.filter(e => e.status === 'Active');
+  const interviews = candidates.filter(c => c.stage === 'Interview').slice(0, 6).map((c, i) => ({
+    id: 'i' + i, candId: c.id, interviewer: activeEmps[i * 5].id,
+    date: daysAhead(i % 3 + 1), time: slots[i], mode: modes[i % 3], link: '',
+    status: 'Scheduled', feedback: ''
+  }));
+  return { employees, attendance, leaves, jobs, candidates, goals, reviews, interviews };
+}
+function load() {
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && s.employees) {
+      s.interviews = s.interviews || [];   // saved data from earlier versions has no interviews yet
+      (s.jobs || []).forEach(j => { j.skills = j.skills || []; });
+      (s.candidates || []).forEach(c => { c.skills = c.skills || []; c.source = c.source || 'Other'; c.phone = c.phone || ''; c.calls = c.calls || []; });
+      return s;
+    }
+  } catch (e) {}
+  return seed();
+}
+function save() { localStorage.setItem(KEY, JSON.stringify(state)); }
+function resetDemo() {
+  askConfirm({ title: 'Reset demo data', message: 'Reset all data to the 100-employee demo set? Your changes will be lost.', action: 'Reset' }, do_resetDemo);
+}
+function do_resetDemo() {
+  state = seed();
+  lastEmpId = null;
+  assistantAnswer = '';
+  save(); render();
+}
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function today() { return new Date().toISOString().slice(0, 10); }
+function nowTime() { return new Date().toTimeString().slice(0, 5); }
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function emp(id) { return state.employees.find(e => e.id === id); }
+function empName(id) { return emp(id) ? emp(id).name : 'Unknown'; }
+function money(n) { return '₹' + Math.round(n).toLocaleString('en-IN'); }
+function payOf(s) {
+  const basic = s * 0.5, hra = s * 0.2, allow = s * 0.3, pf = basic * 0.12;
+  return { gross: s, basic, hra, allow, pf, net: s - pf };
+}
+
+/* ---------- feedback, paging and export ---------- */
+let empPage = 1;
+const PAGE = 20;
+function goPage(p) { empPage = p; render(); }
+function toast(msg, type = 'success') {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.textContent = msg;
+  wrap.appendChild(el);
+  setTimeout(() => el.classList.add('hide'), 2800);
+  setTimeout(() => el.remove(), 3300);
+}
+function exportCSV(filename, headers, rows) {
+  const cell = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const csv = [headers, ...rows].map(r => r.map(cell).join(',')).join('\n');
+  const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+function exportEmployees() {
+  exportCSV('employees.csv', ['Name', 'Email', 'Department', 'Role', 'Monthly salary', 'Status'],
+    state.employees.map(e => [e.name, e.email, e.dept, e.role, e.salary, e.status]));
+  toast('Employee list exported.');
+}
+function exportPayroll() {
+  exportCSV('payroll.csv', ['Name', 'Department', 'Basic', 'HRA', 'Allowances', 'Gross', 'PF', 'Net'],
+    state.employees.filter(e => e.status === 'Active').map(e => {
+      const p = payOf(e.salary);
+      return [e.name, e.dept, Math.round(p.basic), Math.round(p.hra), Math.round(p.allow),
+              Math.round(p.gross), Math.round(p.pf), Math.round(p.net)];
+    }));
+  toast('Payroll exported.');
+}
+
+/* ---------- styled confirmation dialog, replaces the browser pop-up ---------- */
+let pendingAction = null;
+function askConfirm(opts, action) {
+  pendingAction = action;
+  document.getElementById('confirm-title').textContent = opts.title;
+  document.getElementById('confirm-msg').textContent = opts.message;
+  const ok = document.getElementById('confirm-ok');
+  ok.textContent = opts.action || 'Confirm';
+  document.getElementById('confirm-overlay').classList.add('open');
+  ok.focus();
+}
+function closeConfirm(accept) {
+  document.getElementById('confirm-overlay').classList.remove('open');
+  const action = pendingAction;
+  pendingAction = null;
+  if (accept && action) action();
+}
+function greeting() {
+  const h = new Date().getHours();
+  return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
+}
+
+/* ---------- navigation ---------- */
+function toggleNav() {
+  document.body.classList.toggle('nav-collapsed');
+  localStorage.setItem('hrms-nav-collapsed', document.body.classList.contains('nav-collapsed') ? '1' : '0');
+}
+function restoreNav() {
+  if (localStorage.getItem('hrms-nav-collapsed') === '1') document.body.classList.add('nav-collapsed');
+}
+function setView(v) {
+  view = v;
+  search = '';
+  render();
+}
+function render() {
+  document.querySelectorAll('nav button[data-view]').forEach(b =>
+    b.classList.toggle('active', b.dataset.view === view));
+  document.getElementById('page-title').textContent = TITLES[view][0];
+  document.getElementById('page-sub').textContent = TITLES[view][1];
+  document.getElementById('greeting').textContent = greeting() + ', HR Admin';
+  document.getElementById('today-date').textContent =
+    new Date().toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+  const views = { dashboard, employees, attendance, leave, payroll, recruitment, performance, radar: retentionView, assistant };
+  document.getElementById('app').innerHTML = views[view]();
+}
+
+/* ---------- Dashboard ---------- */
+function dashboard() {
+  const presentToday = checkedInIds().size;
+  const pending = state.leaves.filter(l => l.status === 'Pending').length;
+  const depts = new Set(state.employees.map(e => e.dept)).size;
+  const active = state.employees.filter(e => e.status === 'Active').length;
+  const recent = [...state.leaves].reverse().slice(0, 6);
+  return `
+  <div class="cards">
+    <div class="card"><div class="label">Total employees</div><div class="num">${state.employees.length}</div></div>
+    <div class="card green"><div class="label">Active employees</div><div class="num">${active}</div></div>
+    <div class="card blue"><div class="label">Checked in today</div><div class="num">${presentToday}</div></div>
+    <div class="card amber"><div class="label">Pending leave requests</div><div class="num">${pending}</div></div>
+    <div class="card"><div class="label">Departments</div><div class="num">${depts}</div></div>
+    <div class="card amber"><div class="label">High retention risk</div><div class="num">${radarActive().filter(x => x.r.level === 'High').length}</div></div>
+    <div class="card blue"><div class="label">Open job positions</div><div class="num">${state.jobs.filter(j => j.status === 'Open').length}</div></div>
+    <div class="card"><div class="label">Average review rating</div><div class="num">${avgRating() ? avgRating().toFixed(1) + ' / 5' : '-'}</div></div>
+  </div>
+  <div class="panel">
+    <h3>Recent leave requests</h3>
+    ${recent.length ? `<table>
+      <tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Status</th></tr>
+      ${recent.map(l => `<tr><td>${esc(empName(l.empId))}</td><td>${esc(l.type)}</td><td>${l.from}</td><td>${l.to}</td><td><span class="badge ${l.status}">${l.status}</span></td></tr>`).join('')}
+    </table>` : '<p class="muted">No leave requests yet.</p>'}
+  </div>`;
+}
+
+/* ---------- Employees ---------- */
+function employees() {
+  const q = search.toLowerCase();
+  const filtered = state.employees.filter(e =>
+    (e.name + e.dept + e.role + e.email).toLowerCase().includes(q));
+  const pages = Math.max(1, Math.ceil(filtered.length / PAGE));
+  if (empPage > pages) empPage = pages;
+  const list = filtered.slice((empPage - 1) * PAGE, empPage * PAGE);
+  return `
+  <div class="panel">
+    <h3>Add employee</h3>
+    <form class="inline" onsubmit="return addEmp(event)">
+      <input name="name" placeholder="Full name" required>
+      <input name="email" type="email" placeholder="Email" required>
+      <input name="dept" placeholder="Department" required>
+      <input name="role" placeholder="Job title" required>
+      <input name="salary" type="number" min="0" placeholder="Monthly salary" required>
+      <button class="btn" type="submit">Add employee</button>
+    </form>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h3>All employees <span class="muted" style="font-weight:400">${filtered.length} of ${state.employees.length}</span></h3>
+      <button class="btn light" onclick="exportEmployees()">Export CSV</button></div>
+    <input class="search" placeholder="Search by name, email, department or role" value="${esc(search)}" oninput="search=this.value;render();this.focus()">
+    <table>
+      <tr><th>Name</th><th>Email</th><th>Department</th><th>Role</th><th>Salary</th><th>Status</th><th></th></tr>
+      ${list.map(e => `<tr>
+        <td><b>${esc(e.name)}</b></td><td>${esc(e.email)}</td><td>${esc(e.dept)}</td><td>${esc(e.role)}</td>
+        <td>${money(e.salary)}</td>
+        <td><span class="badge ${e.status}">${e.status}</span></td>
+        <td><button class="btn light" onclick="toggleStatus('${e.id}')">${e.status === 'Active' ? 'Deactivate' : 'Activate'}</button>
+            <button class="btn danger" onclick="deleteEmp('${e.id}')">Delete</button></td>
+      </tr>`).join('') || '<tr><td colspan="7" class="muted">No employees found.</td></tr>'}
+    </table>
+    <div class="pager">
+      <span>Page ${empPage} of ${pages}</span>
+      <span>
+        <button class="btn light" ${empPage <= 1 ? 'disabled' : ''} onclick="goPage(${empPage - 1})">Previous</button>
+        <button class="btn light" ${empPage >= pages ? 'disabled' : ''} onclick="goPage(${empPage + 1})">Next</button>
+      </span>
+    </div>
+  </div>`;
+}
+function addEmp(ev) {
+  ev.preventDefault();
+  const f = new FormData(ev.target);
+  const email = String(f.get('email')).trim().toLowerCase();
+  if (state.employees.some(e => e.email.toLowerCase() === email)) {
+    toast('An employee with this email already exists.', 'error');
+    return false;
+  }
+  const salary = Number(f.get('salary'));
+  if (!(salary > 0)) {
+    toast('Monthly salary must be greater than zero.', 'error');
+    return false;
+  }
+  state.employees.push({
+    id: uid(), name: String(f.get('name')).trim(), email, dept: f.get('dept'),
+    role: String(f.get('role')).trim(), salary, status: 'Active'
+  });
+  save();
+  toast('Employee added.');
+  render();
+  return false;
+}
+function toggleStatus(id) {
+  const e = emp(id);
+  e.status = e.status === 'Active' ? 'Inactive' : 'Active';
+  save(); render();
+}
+function deleteEmp(id) {
+  askConfirm({ title: 'Delete employee', message: 'Delete this employee and their attendance and leave records?', action: 'Delete' }, () => do_deleteEmp(id));
+}
+function do_deleteEmp(id) {
+  state.employees = state.employees.filter(e => e.id !== id);
+  state.attendance = state.attendance.filter(a => a.empId !== id);
+  state.leaves = state.leaves.filter(l => l.empId !== id);
+  state.goals = state.goals.filter(g => g.empId !== id);
+  state.reviews = state.reviews.filter(r => r.empId !== id);
+  save(); render();
+}
+
+/* ---------- Attendance ---------- */
+function attendance() {
+  const t = today();
+  const rows = state.employees.map(e => {
+    const rec = state.attendance.find(a => a.empId === e.id && a.date === t);
+    const action = `<button class="btn ok" onclick="checkIn('${e.id}')" ${rec ? 'disabled' : ''}>Check in</button>
+                  <button class="btn light" onclick="checkOut('${e.id}')" ${!rec || rec.outTime ? 'disabled' : ''}>Check out</button>`;
+    return `<tr>
+      <td><b>${esc(e.name)}</b></td>
+      <td>${rec ? `<span class="badge Present">Present</span>` : `<span class="badge Absent">Not in</span>`}</td>
+      <td>${rec ? rec.inTime : '-'}</td>
+      <td>${rec && rec.outTime ? rec.outTime : '-'}</td>
+      <td>${action}</td></tr>`;
+  }).join('');
+  const history = [...state.attendance].reverse().slice(0, 20);
+  return `
+  <div class="panel">
+    <h3>Today <span class="muted" style="font-weight:400">${t}</span></h3>
+    <table><tr><th>Employee</th><th>Status</th><th>In</th><th>Out</th><th></th></tr>${rows}</table>
+  </div>
+  <div class="panel">
+    <h3>Recent records</h3>
+    ${history.length ? `<table><tr><th>Date</th><th>Employee</th><th>In</th><th>Out</th></tr>
+      ${history.map(a => `<tr><td>${a.date}</td><td>${esc(empName(a.empId))}</td><td>${a.inTime}</td><td>${a.outTime || '-'}</td></tr>`).join('')}
+    </table>` : '<p class="muted">No attendance yet.</p>'}
+  </div>`;
+}
+function checkIn(empId) {
+  const t = today();
+  if (state.attendance.some(a => a.empId === empId && a.date === t)) return;
+  state.attendance.push({ id: uid(), empId, date: t, inTime: nowTime(), outTime: null });
+  save(); render();
+}
+function checkOut(empId) {
+  const rec = state.attendance.find(a => a.empId === empId && a.date === today() && !a.outTime);
+  if (!rec) return;
+  rec.outTime = nowTime();
+  save(); render();
+}
+
+/* ---------- Leave ---------- */
+function leave() {
+  const empOptions = state.employees.map(e => `<option value="${e.id}">${esc(e.name)}</option>`).join('');
+  const rows = [...state.leaves].reverse();
+  return `
+  <div class="panel">
+    <h3>Apply for leave</h3>
+    <form class="inline" onsubmit="return applyLeave(event)">
+      <select name="empId" required>${empOptions}</select>
+      <select name="type">
+        <option>Casual</option><option>Sick</option><option>Earned</option><option>Unpaid</option>
+      </select>
+      <input type="date" name="from" required>
+      <input type="date" name="to" required>
+      <input name="reason" placeholder="Reason" required>
+      <button class="btn" type="submit">Submit request</button>
+    </form>
+  </div>
+  <div class="panel">
+    <h3>Requests</h3>
+    ${rows.length ? `<table>
+      <tr><th>Employee</th><th>Type</th><th>From</th><th>To</th><th>Reason</th><th>Status</th><th></th></tr>
+      ${rows.map(l => `<tr>
+        <td><b>${esc(empName(l.empId))}</b></td><td>${esc(l.type)}</td><td>${l.from}</td><td>${l.to}</td>
+        <td>${esc(l.reason)}</td>
+        <td><span class="badge ${l.status}">${l.status}</span></td>
+        <td>${l.status === 'Pending' ? `
+          <button class="btn ok" onclick="setLeave('${l.id}','Approved')">Approve</button>
+          <button class="btn danger" onclick="setLeave('${l.id}','Rejected')">Reject</button>` : ''}</td>
+      </tr>`).join('')}
+    </table>` : '<p class="muted">No leave requests.</p>'}
+  </div>`;
+}
+function applyLeave(ev) {
+  ev.preventDefault();
+  const f = new FormData(ev.target);
+  if (f.get('to') < f.get('from')) { toast('End date must be after the start date.', 'error'); return false; }
+  const clash = state.leaves.find(l => l.empId === f.get('empId') && l.status !== 'Rejected' &&
+    f.get('from') <= l.to && l.from <= f.get('to'));
+  if (clash) {
+    toast('This overlaps an existing ' + clash.status.toLowerCase() + ' request for the same employee.', 'error');
+    return false;
+  }
+  state.leaves.push({
+    id: uid(), empId: f.get('empId'), type: f.get('type'),
+    from: f.get('from'), to: f.get('to'), reason: f.get('reason'), status: 'Pending'
+  });
+  save(); render();
+  return false;
+}
+function setLeave(id, status) {
+  const l = state.leaves.find(x => x.id === id);
+  if (l) l.status = status;
+  save(); render();
+}
+
+/* ---------- Payroll (demo: Basic 50%, HRA 20%, Allowances 30%, PF 12% of basic) ---------- */
+function payroll() {
+  let totalNet = 0;
+  const rows = state.employees.filter(e => e.status === 'Active').map(e => {
+    const p = payOf(e.salary);
+    totalNet += p.net;
+    return `<tr>
+      <td><b>${esc(e.name)}</b></td><td>${esc(e.dept)}</td><td>${money(p.basic)}</td><td>${money(p.hra)}</td><td>${money(p.allow)}</td>
+      <td>${money(p.gross)}</td><td>${money(p.pf)}</td><td><b>${money(p.net)}</b></td></tr>`;
+  }).join('');
+  return `
+  <div class="cards">
+    <div class="card green"><div class="label">Total monthly net payout</div><div class="num">${money(totalNet)}</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h3>Salary breakdown <span class="muted" style="font-weight:400">monthly estimate</span></h3>
+      <button class="btn light" onclick="exportPayroll()">Export CSV</button></div>
+    <p class="hint">Estimate only. Statutory deductions such as income tax are not applied.</p>
+    <table>
+      <tr><th>Employee</th><th>Dept</th><th>Basic</th><th>HRA</th><th>Allowances</th><th>Gross</th><th>PF (12%)</th><th>Net pay</th></tr>
+      ${rows || '<tr><td colspan="8" class="muted">No active employees.</td></tr>'}
+    </table>
+  </div>`;
+}
+
+function daysAgo(n) {
+  const d = new Date();
+  d.setDate(d.getDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+function empDept(id) { return emp(id) ? emp(id).dept : '-'; }
+function jobTitle(id) { const j = state.jobs.find(x => x.id === id); return j ? j.title : '-'; }
+function avgRating() {
+  const r = state.reviews.filter(x => x.status === 'Completed' && x.rating);
+  return r.length ? r.reduce((s, x) => s + x.rating, 0) / r.length : 0;
+}
+
+/* ---------- Recruitment (ATS) ---------- */
+const STAGES = ['Applied', 'Screening', 'Interview', 'Offer', 'Hired', 'Rejected'];
+function recruitment() {
+  const count = s => state.candidates.filter(x => x.stage === s).length;
+  const openJobs = state.jobs.filter(j => j.status === 'Open').length;
+  const jobOptions = state.jobs.map(j => `<option value="${j.id}">${esc(j.title)}</option>`).join('');
+  const deptOptions = DEPTS.map(d => `<option>${d}</option>`).join('');
+  return `
+  <div class="cards">
+    <div class="card"><div class="label">Open positions</div><div class="num">${openJobs}</div></div>
+    <div class="card blue"><div class="label">Candidates</div><div class="num">${state.candidates.length}</div></div>
+    <div class="card amber"><div class="label">In interview</div><div class="num">${count('Interview')}</div></div>
+    <div class="card"><div class="label">Offers out</div><div class="num">${count('Offer')}</div></div>
+    <div class="card green"><div class="label">Hired</div><div class="num">${count('Hired')}</div></div>
+  </div>
+  <div class="panel">
+    <h3>Post a job opening</h3>
+    <form class="inline" onsubmit="return addJob(event)">
+      <input name="title" placeholder="Job title" required>
+      <select name="dept">${deptOptions}</select>
+      <input name="location" placeholder="Location" required>
+      <input name="openings" type="number" min="1" value="1" style="width:110px" required>
+      <input name="skills" placeholder="Required skills, comma separated" style="min-width:260px">
+      <button class="btn" type="submit">Post job</button>
+    </form>
+  </div>
+  <div class="panel">
+    <h3>Job openings</h3>
+    <table>
+      <tr><th>Title</th><th>Department</th><th>Location</th><th>Openings</th><th>Applicants</th><th>Posted</th><th>Status</th><th></th></tr>
+      ${state.jobs.map(j => `<tr>
+        <td><b>${esc(j.title)}</b></td><td>${esc(j.dept)}</td><td>${esc(j.location)}</td><td>${j.openings}</td>
+        <td>${state.candidates.filter(x => x.jobId === j.id).length}</td><td>${j.posted}</td>
+        <td><span class="badge ${j.status === 'Open' ? 'Active' : 'Inactive'}">${j.status}</span></td>
+        <td><button class="btn light" onclick="toggleJob('${j.id}')">${j.status === 'Open' ? 'Close' : 'Reopen'}</button>
+            <button class="btn danger" onclick="deleteJob('${j.id}')">Delete</button></td></tr>`).join('') || '<tr><td colspan="8" class="muted">No job openings.</td></tr>'}
+    </table>
+  </div>
+  ${analyticsPanels()}
+  ${callLogHtml()}
+  ${interviewPanels()}
+  <div class="panel">
+    <h3>Candidate pipeline</h3>
+    <form class="inline" onsubmit="return addCandidate(event)">
+      <input name="name" placeholder="Candidate name" required>
+      <input name="email" type="email" placeholder="Email" required>
+      <select name="jobId">${jobOptions}</select>
+      <select name="source">${SOURCES.map(s => `<option>${s}</option>`).join('')}</select>
+      <input name="skills" placeholder="Skills, comma separated" style="min-width:220px">
+      <input name="phone" type="tel" placeholder="Phone, e.g. +91 98xxxxxxxx" style="min-width:200px">
+      <button class="btn" type="submit">Add candidate</button>
+    </form>
+    <table>
+      <tr><th>Candidate</th><th>Job</th><th>Skill match</th><th>Contact</th><th>Stage</th><th>Rating</th><th>Offer (₹/month)</th><th>Applied</th><th></th></tr>
+      ${state.candidates.map(x => `<tr>
+        <td><b>${esc(x.name)}</b><div class="muted" style="font-size:12px">${esc(x.email)}</div></td>
+        <td>${esc(jobTitle(x.jobId))}</td>
+        <td>${matchCell(x)}</td>
+        <td>${callLinkHtml(x)}</td>
+        <td><select onchange="setStage('${x.id}', this.value)">${STAGES.map(s => `<option ${s === x.stage ? 'selected' : ''}>${s}</option>`).join('')}</select></td>
+        <td><select onchange="setCandRating('${x.id}', this.value)">${[1, 2, 3, 4, 5].map(n => `<option value="${n}" ${n === x.rating ? 'selected' : ''}>${'★'.repeat(n)}</option>`).join('')}</select></td>
+        <td><input type="number" min="0" value="${x.offer || ''}" style="width:120px" onchange="setOffer('${x.id}', this.value)"></td>
+        <td>${x.applied}</td>
+        <td>${x.stage === 'Hired' && !x.converted ? `<button class="btn ok" onclick="convertCandidate('${x.id}')">Add to employees</button>` : ''}
+            ${x.converted ? '<span class="badge Active">In employees</span>' : ''}
+            <button class="btn danger" onclick="deleteCandidate('${x.id}')">Remove</button></td>
+      </tr>`).join('') || '<tr><td colspan="9" class="muted">No candidates yet.</td></tr>'}
+    </table>
+  </div>`;
+}
+function addJob(ev) {
+  ev.preventDefault();
+  const f = new FormData(ev.target);
+  state.jobs.push({
+    id: uid(), title: f.get('title'), dept: f.get('dept'), location: f.get('location'),
+    openings: Number(f.get('openings')) || 1, status: 'Open', posted: today(),
+    skills: parseSkills(f.get('skills'))
+  });
+  save(); render();
+  return false;
+}
+function toggleJob(id) {
+  const j = state.jobs.find(x => x.id === id);
+  if (j) j.status = j.status === 'Open' ? 'Closed' : 'Open';
+  save(); render();
+}
+function deleteJob(id) {
+  askConfirm({ title: 'Delete job', message: 'Delete this job and its candidates?', action: 'Delete' }, () => do_deleteJob(id));
+}
+function do_deleteJob(id) {
+  state.jobs = state.jobs.filter(j => j.id !== id);
+  state.candidates = state.candidates.filter(c => c.jobId !== id);
+  save(); render();
+}
+function addCandidate(ev) {
+  ev.preventDefault();
+  const f = new FormData(ev.target);
+  state.candidates.push({
+    id: uid(), name: f.get('name'), email: f.get('email'), jobId: f.get('jobId'),
+    stage: 'Applied', rating: 3, offer: 0, applied: today(), converted: false,
+    skills: parseSkills(f.get('skills')), source: f.get('source') || 'Other',
+    phone: String(f.get('phone') || '').trim(), calls: []
+  });
+  save(); render();
+  return false;
+}
+function findCandidate(id) { return state.candidates.find(x => x.id === id); }
+function setStage(id, stage) {
+  const c = findCandidate(id);
+  if (c) { c.stage = stage; if (stage === 'Hired') c.hiredOn = c.hiredOn || today(); else delete c.hiredOn; }
+  save(); render();
+}
+function setCandRating(id, v) {
+  const c = findCandidate(id);
+  if (c) c.rating = Number(v);
+  save(); render();
+}
+function setOffer(id, v) {
+  const c = findCandidate(id);
+  if (c) c.offer = Number(v) || 0;
+  save(); render();
+}
+function deleteCandidate(id) {
+  askConfirm({ title: 'Remove candidate', message: 'Remove this candidate?', action: 'Remove' }, () => do_deleteCandidate(id));
+}
+function do_deleteCandidate(id) {
+  state.candidates = state.candidates.filter(c => c.id !== id);
+  state.interviews = state.interviews.filter(i => i.candId !== id);
+  save(); render();
+}
+function convertCandidate(id) {
+  const c = findCandidate(id);
+  if (!c || c.converted) return;
+  const job = state.jobs.find(j => j.id === c.jobId);
+  state.employees.push({
+    id: uid(), name: c.name, email: c.email,
+    dept: job ? job.dept : 'General', role: job ? job.title : 'Employee',
+    salary: c.offer || 60000, status: 'Active'
+  });
+  c.converted = true;
+  save(); render();
+}
+
+/* ---------- Performance (PMS) ---------- */
+function performance() {
+  const goals = state.goals;
+  const avgProgress = goals.length ? goals.reduce((s, g) => s + g.progress, 0) / goals.length : 0;
+  const done = state.reviews.filter(r => r.status === 'Completed').length;
+  const pct = state.reviews.length ? Math.round(done / state.reviews.length * 100) : 0;
+  const q = search.toLowerCase();
+  const goalRows = goals.filter(g =>
+    (empName(g.empId) + ' ' + g.title).toLowerCase().includes(q)).slice(0, 50);
+  const reviewRows = state.reviews.filter(r =>
+    empName(r.empId).toLowerCase().includes(q)).slice(0, 50);
+  const deptRatings = DEPTS.map(d => {
+    const rs = state.reviews.filter(r => r.status === 'Completed' && empDept(r.empId) === d);
+    const avg = rs.length ? rs.reduce((s, r) => s + r.rating, 0) / rs.length : 0;
+    return `${esc(d)}: ${avg ? avg.toFixed(2) + ' / 5' : 'no completed reviews'}`;
+  });
+  return `
+  <div class="cards">
+    <div class="card"><div class="label">Goals tracked</div><div class="num">${goals.length}</div></div>
+    <div class="card blue"><div class="label">Average goal progress</div><div class="num">${Math.round(avgProgress)}%</div></div>
+    <div class="card green"><div class="label">Reviews completed</div><div class="num">${pct}%</div></div>
+    <div class="card amber"><div class="label">Average rating</div><div class="num">${avgRating() ? avgRating().toFixed(2) : '-'}</div></div>
+  </div>
+  ${insightsPanels()}
+  ${perfAnalysisHtml()}
+  <div class="panel">
+    <h3>Search <span class="muted" style="font-weight:400">filters goals and reviews below</span></h3>
+    <input class="search" placeholder="Search by employee or goal" value="${esc(search)}" oninput="search=this.value;render();this.focus()">
+  </div>
+  <div class="panel">
+    <h3>Goals <span class="muted" style="font-weight:400">Q4 2026, showing up to 50</span></h3>
+    <table>
+      <tr><th>Employee</th><th>Goal</th><th>Progress</th><th>Update (%)</th></tr>
+      ${goalRows.map(g => `<tr>
+        <td><b>${esc(empName(g.empId))}</b></td><td>${esc(g.title)}</td>
+        <td><div class="bar"><span style="width:${g.progress}%"></span></div> <span class="muted">${g.progress}%</span></td>
+        <td><input type="number" min="0" max="100" value="${g.progress}" style="width:90px" onchange="setProgress('${g.id}', this.value)"></td>
+      </tr>`).join('') || '<tr><td colspan="4" class="muted">No goals match.</td></tr>'}
+    </table>
+  </div>
+  <div class="panel">
+    <h3>Performance reviews <span class="muted" style="font-weight:400">Q4 2026, showing up to 50</span></h3>
+    <table>
+      <tr><th>Employee</th><th>Department</th><th>Manager rating</th><th>Status</th><th></th></tr>
+      ${reviewRows.map(r => `<tr>
+        <td><b>${esc(empName(r.empId))}</b></td><td>${esc(empDept(r.empId))}</td>
+        <td><select onchange="setRating('${r.id}', this.value)">${[0, 1, 2, 3, 4, 5].map(n => `<option value="${n}" ${n === r.rating ? 'selected' : ''}>${n ? '★'.repeat(n) : 'Not rated'}</option>`).join('')}</select></td>
+        <td><span class="badge ${r.status}">${r.status}</span></td>
+        <td><button class="btn light" onclick="showExplain('${r.empId}')">Explain</button></td>
+      </tr>`).join('') || '<tr><td colspan="5" class="muted">No reviews match.</td></tr>'}
+    </table>
+  </div>
+  <div class="panel">
+    <h3>Average rating by department</h3>
+    ${listHtml(deptRatings)}
+  </div>`;
+}
+function setProgress(id, v) {
+  const g = state.goals.find(x => x.id === id);
+  if (g) g.progress = Math.max(0, Math.min(100, Number(v) || 0));
+  save(); render();
+}
+function setRating(id, v) {
+  const r = state.reviews.find(x => x.id === id);
+  if (r) {
+    r.rating = Number(v);
+    r.status = r.rating ? 'Completed' : 'Pending';
+  }
+  save(); render();
+}
+
+/* ---------- ATS insights: skill match, hiring funnel, source of hire ---------- */
+const SOURCE_COLORS = ['#0f766e', '#1d4ed8', '#15803d', '#b45309', '#7e22ce', '#94a3b8'];
+function parseSkills(s) { return String(s || '').split(',').map(x => x.trim()).filter(Boolean); }
+// Skill match = share of the job's required skills the candidate has
+function matchInfo(c) {
+  const job = state.jobs.find(j => j.id === c.jobId);
+  const need = (job && job.skills) || [];
+  if (!need.length) return { pct: null, hit: [] };
+  const have = (c.skills || []).map(s => s.toLowerCase());
+  const hit = need.filter(s => have.includes(s.toLowerCase()));
+  return { pct: Math.round(hit.length / need.length * 100), hit };
+}
+function matchCell(c) {
+  const m = matchInfo(c);
+  if (m.pct === null) return '<span class="muted">-</span>';
+  const cls = m.pct >= 67 ? 'Active' : m.pct >= 34 ? 'Pending' : 'Rejected';
+  return `<span class="badge ${cls}" title="${esc(m.hit.join(', ') || 'No matching skills')}">${m.pct}%</span>`;
+}
+function funnelData() {
+  const active = state.candidates.filter(c => c.stage !== 'Rejected');
+  const reached = STAGE_ORDER.map((s, k) => active.filter(c => STAGE_ORDER.indexOf(c.stage) >= k).length);
+  return { reached, rejected: state.candidates.filter(c => c.stage === 'Rejected').length };
+}
+function dayGap(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000); }
+function avgTimeToHire() {
+  const d = state.candidates.filter(c => c.stage === 'Hired' && c.hiredOn && c.applied)
+    .map(c => dayGap(c.applied, c.hiredOn));
+  return d.length ? Math.round(d.reduce((s, x) => s + x, 0) / d.length) : null;
+}
+function sourceCounts() {
+  return SOURCES.map(s => ({ label: s, value: state.candidates.filter(c => (c.source || 'Other') === s).length }));
+}
+function analyticsPanels() {
+  const { reached, rejected } = funnelData();
+  const total = reached[0] || 0;
+  const bars = STAGE_ORDER.map((s, k) => {
+    const pct = total ? Math.round(reached[k] / total * 100) : 0;
+    const conv = k === 0 || !reached[k - 1] ? '' : `${Math.round(reached[k] / reached[k - 1] * 100)}% moved on from ${STAGE_ORDER[k - 1]}`;
+    return `<tr><td style="width:110px"><b>${s}</b></td>
+      <td style="white-space:normal;width:50%"><div class="bar" style="width:100%;height:12px"><span style="width:${pct}%"></span></div></td>
+      <td>${reached[k]}</td><td class="muted">${conv}</td></tr>`;
+  }).join('');
+  const slices = sourceCounts().map((x, i) => ({ ...x, color: SOURCE_COLORS[i] }));
+  const avg = avgTimeToHire();
+  const overall = total ? Math.round(reached[STAGE_ORDER.length - 1] / total * 100) + '%' : '-';
+  return `
+  <div class="cards">
+    <div class="card blue"><div class="label">Average time to hire</div><div class="num">${avg === null ? '-' : avg + ' days'}</div></div>
+    <div class="card green"><div class="label">Applicants hired</div><div class="num">${overall}</div></div>
+    <div class="card amber"><div class="label">Rejected</div><div class="num">${rejected}</div></div>
+  </div>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Hiring funnel</h3>
+      <table>${bars}</table>
+    </div>
+    <div class="panel">
+      <h3>Where candidates come from</h3>
+      ${pieSvg(slices)}
+    </div>
+  </div>`;
+}
+function funnelText() {
+  const { reached, rejected } = funnelData();
+  return `<p>Hiring funnel (candidates who reached each stage):</p>` +
+    listHtml(STAGE_ORDER.map((s, k) => `${s}: ${reached[k]}`)) + `<p>Rejected: ${rejected}</p>`;
+}
+function sourceText() {
+  const rows = sourceCounts().sort((a, b) => b.value - a.value);
+  return `<p>Where candidates come from:</p>` + listHtml(rows.map(r => `${esc(r.label)}: ${r.value}`));
+}
+function topMatchText() {
+  const list = state.candidates.filter(c => c.stage !== 'Rejected')
+    .map(c => ({ c, m: matchInfo(c) }))
+    .filter(x => x.m.pct !== null)
+    .sort((a, b) => b.m.pct - a.m.pct).slice(0, 5);
+  return `<p>Best skill matches among active candidates:</p>` +
+    listHtml(list.map(x => `${esc(x.c.name)} for ${esc(jobTitle(x.c.jobId))}: ${x.m.pct}% match${x.m.hit.length ? ' (' + esc(x.m.hit.join(', ')) + ')' : ''}`));
+}
+
+/* ---------- call option (ATS) ---------- */
+// Call panel shown next to the HR Assistant; it logs into the same ATS call log
+function assistantCallPanel() {
+  const open = state.candidates.filter(c => c.stage !== 'Rejected' && c.stage !== 'Hired');
+  const candOpts = open.map(c => `<option value="${c.id}">${esc(c.name)} (${esc(jobTitle(c.jobId))})</option>`).join('');
+  const outOpts = CALL_OUTCOMES.map(o => `<option>${o}</option>`).join('');
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Call a candidate</h3>
+      <span class="muted" style="font-size:12px">Calls are logged in the ATS call log</span>
+    </div>
+    <form class="inline" onsubmit="return logCall(event)">
+      <select name="candId" required onchange="showCallLink(this.value)">${candOpts}</select>
+      <input type="date" name="date" value="${today()}" max="${today()}" required>
+      <select name="outcome">${outOpts}</select>
+      <input name="notes" placeholder="Notes (optional)" style="min-width:240px">
+      <button class="btn" type="submit">Log call</button>
+    </form>
+    <p class="hint" style="margin-top:6px">Tap to call: <span id="call-link-box">${open[0] ? callLinkHtml(open[0]) : '<span class="muted">No open candidates</span>'}</span></p>
+  </div>`;
+}
+function showCallLink(id) {
+  const c = findCandidate(id);
+  const box = document.getElementById('call-link-box');
+  if (box) box.innerHTML = c ? callLinkHtml(c) : '';
+}
+function callLinkHtml(c) {
+  if (!c.phone) return '<span class="muted">No phone</span>';
+  const tel = c.phone.replace(/[^+0-9]/g, '');
+  return `<a class="call-btn" href="tel:${esc(tel)}">Call</a> <span class="muted" style="font-size:12px">${esc(c.phone)}</span>`;
+}
+function outcomeCls(o) {
+  if (o === 'Reached: interested') return 'Active';
+  if (o === 'Reached: call back later') return 'Pending';
+  if (o === 'Reached: not interested') return 'Rejected';
+  return 'Inactive';
+}
+function logCall(ev) {
+  ev.preventDefault();
+  const f = new FormData(ev.target);
+  const c = findCandidate(f.get('candId'));
+  if (!c) { toast('Please choose a candidate.', 'error'); return false; }
+  c.calls = c.calls || [];
+  c.calls.push({ id: uid(), date: f.get('date') || today(), outcome: f.get('outcome'), notes: String(f.get('notes') || '').trim() });
+  save();
+  toast('Call logged for ' + c.name + '.');
+  render();
+  return false;
+}
+function deleteCall(candId, callId) {
+  askConfirm({ title: 'Delete call entry', message: 'Remove this call from the log?', action: 'Delete' }, () => {
+    const c = findCandidate(candId);
+    if (c) c.calls = (c.calls || []).filter(x => x.id !== callId);
+    save(); render();
+  });
+}
+function callLogHtml() {
+  const rows = [];
+  state.candidates.forEach(c => (c.calls || []).forEach(k => rows.push({ c, k })));
+  rows.sort((a, b) => b.k.date.localeCompare(a.k.date));
+  const candOpts = state.candidates.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+  const outOpts = CALL_OUTCOMES.map(o => `<option>${o}</option>`).join('');
+  return `
+  <div class="panel">
+    <h3>Log a call</h3>
+    <form class="inline" onsubmit="return logCall(event)">
+      <select name="candId" required>${candOpts}</select>
+      <input type="date" name="date" value="${today()}" max="${today()}" required>
+      <select name="outcome">${outOpts}</select>
+      <input name="notes" placeholder="Notes (optional)" style="min-width:260px">
+      <button class="btn" type="submit">Log call</button>
+    </form>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h3>Call log</h3><span class="muted">${rows.length} call(s), latest 50 shown</span></div>
+    <table>
+      <tr><th>Date</th><th>Candidate</th><th>Outcome</th><th>Notes</th><th></th></tr>
+      ${rows.slice(0, 50).map(({ c, k }) => `<tr>
+        <td>${k.date}</td><td><b>${esc(c.name)}</b></td>
+        <td><span class="badge ${outcomeCls(k.outcome)}">${esc(k.outcome)}</span></td>
+        <td style="white-space:normal">${esc(k.notes)}</td>
+        <td><button class="btn danger" onclick="deleteCall('${c.id}','${k.id}')">Delete</button></td></tr>`).join('') ||
+        '<tr><td colspan="5" class="muted">No calls logged yet.</td></tr>'}
+    </table>
+  </div>`;
+}
+function callText() {
+  let total = 0;
+  state.candidates.forEach(c => total += (c.calls || []).length);
+  const callBack = state.candidates.filter(c => {
+    const last = (c.calls || []).slice(-1)[0];
+    return last && last.outcome === 'Reached: call back later' && c.stage !== 'Rejected' && c.stage !== 'Hired';
+  });
+  return `<p><b>${total}</b> call(s) logged. <b>${callBack.length}</b> candidate(s) asked to be called back.</p>` +
+    listHtml(callBack.map(c => `${esc(c.name)}${c.phone ? ' (' + esc(c.phone) + ')' : ''}`));
+}
+
+/* ---------- Interview scheduling (ATS) ---------- */
+function daysAhead(n) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+function candName(id) { const c = findCandidate(id); return c ? c.name : 'Removed candidate'; }
+function interviewPanels() {
+  const open = state.candidates.filter(c => c.stage !== 'Rejected' && c.stage !== 'Hired');
+  const candOpts = open.map(c => `<option value="${c.id}">${esc(c.name)} (${esc(jobTitle(c.jobId))})</option>`).join('');
+  const empOpts = state.employees.filter(e => e.status === 'Active')
+    .map(e => `<option value="${e.id}">${esc(e.name)} (${esc(e.dept)})</option>`).join('');
+  const sorted = [...state.interviews].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+  const upcoming = state.interviews.filter(i => i.status === 'Scheduled').length;
+  const rows = sorted.map(i => {
+    const c = findCandidate(i.candId);
+    const actions = i.status === 'Scheduled'
+      ? `<button class="btn ok" onclick="setInterviewStatus('${i.id}','Completed')">Complete</button>
+         <button class="btn light" onclick="setInterviewStatus('${i.id}','Cancelled')">Cancel</button>` : '';
+    return `<tr>
+      <td><b>${i.date}</b></td><td>${i.time}</td>
+      <td>${esc(candName(i.candId))}<div class="muted" style="font-size:12px">${c ? esc(jobTitle(c.jobId)) : ''}</div></td>
+      <td>${esc(empName(i.interviewer))}</td>
+      <td>${esc(i.mode)}${i.link ? `<div class="muted" style="font-size:12px">${esc(i.link)}</div>` : ''}</td>
+      <td><span class="badge ${i.status}">${i.status}</span>${i.feedback ? `<div class="muted" style="font-size:12px;white-space:normal;max-width:220px">${esc(i.feedback)}</div>` : ''}</td>
+      <td>${actions} <button class="btn danger" onclick="deleteInterview('${i.id}')">Delete</button></td>
+    </tr>`;
+  }).join('');
+  return `
+  <div class="panel">
+    <h3>Schedule interview</h3>
+    <form class="inline" onsubmit="return addInterview(event)">
+      <select name="candId" required>${candOpts}</select>
+      <select name="interviewer" required>${empOpts}</select>
+      <input type="date" name="date" min="${today()}" required>
+      <input type="time" name="time" required>
+      <select name="mode"><option>Video call</option><option>In person</option><option>Phone</option></select>
+      <input name="link" placeholder="Meeting link or room (optional)">
+      <button class="btn" type="submit">Schedule</button>
+    </form>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h3>Interview schedule <span class="muted" style="font-weight:400">${upcoming} upcoming</span></h3></div>
+    <table>
+      <tr><th>Date</th><th>Time</th><th>Candidate</th><th>Interviewer</th><th>Mode</th><th>Status</th><th></th></tr>
+      ${rows || '<tr><td colspan="7" class="muted">No interviews scheduled.</td></tr>'}
+    </table>
+  </div>`;
+}
+function addInterview(ev) {
+  ev.preventDefault();
+  const f = new FormData(ev.target);
+  const candId = f.get('candId'), interviewer = f.get('interviewer');
+  const date = f.get('date'), time = f.get('time');
+  const cand = findCandidate(candId);
+  if (!cand) { toast('Please choose a candidate.', 'error'); return false; }
+  if (date < today()) { toast('Interview date cannot be in the past.', 'error'); return false; }
+  const clash = state.interviews.find(i => i.status === 'Scheduled' && i.date === date && i.time === time &&
+    (i.interviewer === interviewer || i.candId === candId));
+  if (clash) {
+    toast(clash.candId === candId
+      ? 'This candidate already has an interview at that time.'
+      : empName(interviewer) + ' is already booked at that time.', 'error');
+    return false;
+  }
+  state.interviews.push({
+    id: uid(), candId, interviewer, date, time, mode: f.get('mode'),
+    link: String(f.get('link') || '').trim(), status: 'Scheduled', feedback: ''
+  });
+  // moving a candidate into the Interview stage automatically
+  if (cand.stage === 'Applied' || cand.stage === 'Screening') cand.stage = 'Interview';
+  save();
+  toast('Interview scheduled with ' + cand.name + '.');
+  render();
+  return false;
+}
+function setInterviewStatus(id, status) {
+  const i = state.interviews.find(x => x.id === id);
+  if (!i) return;
+  if (status === 'Completed') {
+    const fb = prompt('Interview feedback (optional):', i.feedback || '');
+    if (fb === null) return;
+    i.feedback = fb.trim();
+  }
+  i.status = status;
+  save();
+  toast('Interview marked as ' + status.toLowerCase() + '.');
+  render();
+}
+function deleteInterview(id) {
+  askConfirm({ title: 'Delete interview', message: 'Delete this interview?', action: 'Delete' }, () => do_deleteInterview(id));
+}
+function do_deleteInterview(id) {
+  state.interviews = state.interviews.filter(i => i.id !== id);
+  save(); toast('Interview deleted.'); render();
+}
+
+/* ---------- Performance explanations (PMS) ---------- */
+// Score = 60% manager rating + 40% average goal progress (goal progress alone if not yet rated)
+const PERF_BANDS = [
+  { min: 75, name: 'Excellent', cls: 'Active' },
+  { min: 60, name: 'Good', cls: 'Scheduled' },
+  { min: 40, name: 'Needs improvement', cls: 'Pending' },
+  { min: 0, name: 'Low', cls: 'Rejected' }
+];
+const PERF_ACTIONS = {
+  Excellent: 'Recognise the achievement and discuss stretch work or a promotion path.',
+  Good: 'Keep the current pace and agree one stretch goal for the next cycle.',
+  'Needs improvement': 'Agree a 30-day improvement plan with clear milestones and weekly check-ins.',
+  Low: 'Hold a one-to-one to find blockers, add support or training, and review progress in 30 days.'
+};
+let explainId = null;
+
+function perfExplain(empId) {
+  const e = emp(empId);
+  const gs = state.goals.filter(g => g.empId === empId);
+  const rv = state.reviews.find(r => r.empId === empId);
+  const rated = rv && rv.rating ? rv.rating : 0;
+  const avgP = gs.length ? gs.reduce((s, g) => s + g.progress, 0) / gs.length : 0;
+  const score = Math.round(rated ? 0.6 * (rated / 5 * 100) + 0.4 * avgP : avgP);
+  const band = PERF_BANDS.find(b => score >= b.min);
+  const strengths = [], concerns = [];
+
+  if (gs.length && avgP >= 80) strengths.push(`Strong goal delivery, averaging ${Math.round(avgP)}% completion`);
+  const strong = gs.filter(g => g.progress >= 90);
+  if (strong.length) strengths.push(`Completed ${strong.length} goal(s) at 90% or more`);
+  if (rated >= 4) strengths.push(`Manager rating of ${rated} / 5`);
+
+  if (!gs.length) concerns.push('No goals set for this cycle');
+  else if (avgP < 40) concerns.push(`Goal progress is low, averaging ${Math.round(avgP)}%`);
+  const weak = gs.filter(g => g.progress < 40);
+  if (weak.length) concerns.push(`${weak.length} goal(s) below 40%: ${weak.map(g => g.title).join(', ')}`);
+  if (rated && rated <= 2) concerns.push(`Manager rating of ${rated} / 5`);
+  if (!rated) concerns.push('Manager review not completed yet');
+
+  return {
+    id: empId, name: e ? e.name : 'Unknown', score, band, avgP, rated, strengths, concerns,
+    headline: strengths[0] || concerns[0] || 'No data yet',
+    action: PERF_ACTIONS[band.name], comment: rv ? (rv.comment || '') : ''
+  };
+}
+function explainCard(ex) {
+  const reasons = ex.strengths.map(s => '&#10004; ' + esc(s)).concat(ex.concerns.map(c => '&#9888; ' + esc(c)));
+  return `<div class="answer" style="margin-top:0">
+    <p><b>${esc(ex.name)}</b>: score ${ex.score} / 100 <span class="badge ${ex.band.cls}">${ex.band.name}</span></p>
+    <p style="margin-top:10px"><b>Reasons</b></p>
+    ${listHtml(reasons)}
+    <p style="margin-top:12px"><b>Suggested action:</b> ${esc(ex.action)}</p>
+    <div style="margin-top:12px">
+      <label class="muted" style="font-size:12px">Manager comment (saved automatically)</label>
+      <textarea rows="2" style="width:100%;margin-top:4px;padding:8px 10px;border:1px solid #d6dce8;border-radius:8px;font-family:inherit"
+        onchange="setComment('${ex.id}', this.value)">${esc(ex.comment)}</textarea>
+    </div>
+  </div>`;
+}
+function insightsPanels() {
+  const scored = state.employees.filter(e => e.status === 'Active').map(e => perfExplain(e.id));
+  const counts = {};
+  PERF_BANDS.forEach(b => counts[b.name] = 0);
+  scored.forEach(s => counts[s.band.name]++);
+  const cardCls = { Excellent: 'green', Good: 'blue', 'Needs improvement': 'amber', Low: '' };
+  const ex = explainId ? perfExplain(explainId) : null;
+  const line = s => `${esc(s.name)} (${s.score} / 100): ${esc(s.headline)}`;
+  return `
+  <div class="cards">
+    ${PERF_BANDS.map(b => `<div class="card ${cardCls[b.name]}"><div class="label">${b.name}</div><div class="num">${counts[b.name]}</div></div>`).join('')}
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h3>Why employees are performing well or poorly</h3></div>
+    ${ex ? explainCard(ex) : '<p class="hint">Click Explain next to an employee in the reviews table below to see the reasons and a suggested action.</p>'}
+  </div>
+  <div class="panel">
+    <h3>Top performers</h3>
+    ${listHtml([...scored].sort((a, b) => b.score - a.score).slice(0, 5).map(line))}
+  </div>
+  <div class="panel">
+    <h3>Employees who need support</h3>
+    ${listHtml([...scored].sort((a, b) => a.score - b.score).slice(0, 5).map(line))}
+  </div>`;
+}
+function showExplain(id) {
+  explainId = id;
+  render();
+}
+function setComment(empId, text) {
+  const r = state.reviews.find(x => x.empId === empId);
+  if (!r) return;
+  r.comment = text.trim();
+  save();
+  toast('Comment saved.');
+}
+function lowPerformersHtml() {
+  const list = state.employees.filter(e => e.status === 'Active').map(e => perfExplain(e.id))
+    .sort((a, b) => a.score - b.score).slice(0, 5);
+  return '<p>Employees who need the most support:</p>' +
+    listHtml(list.map(s => `${esc(s.name)} (${s.score} / 100): ${esc(s.headline)}. Suggested: ${esc(s.action)}`));
+}
+function topPerformersHtml() {
+  const list = state.employees.filter(e => e.status === 'Active').map(e => perfExplain(e.id))
+    .sort((a, b) => b.score - a.score).slice(0, 5);
+  return '<p>Top performers this cycle:</p>' +
+    listHtml(list.map(s => `${esc(s.name)} (${s.score} / 100): ${esc(s.headline)}`));
+}
+
+/* ---------- Performance charts: pie charts built on the explanations above ---------- */
+const BAND_COLORS = { Excellent: '#15803d', Good: '#1d4ed8', 'Needs improvement': '#b45309', Low: '#b91c1c' };
+let perfDept = 'All';
+let perfEmpId = null;
+function setPerfDept(v) { perfDept = v; render(); }
+function setPerfEmp(v) { perfEmpId = v; render(); }
+
+function pieSvg(slices, size = 180) {
+  const total = slices.reduce((s, x) => s + x.value, 0);
+  if (!total) return '<p class="muted">No data to chart.</p>';
+  const r = size / 2, c = size / 2;
+  let angle = -Math.PI / 2, paths = '';
+  slices.forEach(s => {
+    if (!s.value) return;
+    const frac = s.value / total;
+    if (frac >= 0.9999) {
+      paths += `<circle cx="${c}" cy="${c}" r="${r}" fill="${s.color}"><title>${esc(s.label)}: ${s.value}</title></circle>`;
+      return;
+    }
+    const a2 = angle + frac * 2 * Math.PI;
+    const x1 = c + r * Math.cos(angle), y1 = c + r * Math.sin(angle);
+    const x2 = c + r * Math.cos(a2), y2 = c + r * Math.sin(a2);
+    const large = frac > 0.5 ? 1 : 0;
+    paths += `<path d="M${c},${c} L${x1.toFixed(2)},${y1.toFixed(2)} A${r},${r} 0 ${large} 1 ${x2.toFixed(2)},${y2.toFixed(2)} Z" fill="${s.color}"><title>${esc(s.label)}: ${Math.round(frac * 100)}%</title></path>`;
+    angle = a2;
+  });
+  const legend = slices.filter(s => s.value).map(s =>
+    `<li><span class="sw" style="background:${s.color}"></span>${esc(s.label)}: <b>${Math.round(s.value / total * 100)}%</b></li>`).join('');
+  return `<div class="pie"><svg viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" role="img" aria-label="Pie chart">${paths}</svg><ul class="legend">${legend}</ul></div>`;
+}
+
+// Pie of how an employee's score is built, using the same formula as perfExplain
+function individualSlices(ex) {
+  const rp = ex.rated ? ex.rated / 5 * 100 : 0;
+  if (!ex.rated && ex.avgP === 0) return [{ label: 'No data yet', value: 100, color: '#e2e8f0' }];
+  const slices = ex.rated
+    ? [{ label: 'Goal progress (40% weight)', value: 0.4 * ex.avgP, color: '#0f766e' },
+       { label: 'Manager rating (60% weight)', value: 0.6 * rp, color: '#1d4ed8' }]
+    : [{ label: 'Goal progress', value: ex.avgP, color: '#0f766e' }];
+  const earned = slices.reduce((s, x) => s + x.value, 0);
+  slices.push({ label: 'Not yet earned', value: Math.max(0, 100 - earned), color: '#e2e8f0' });
+  return slices;
+}
+
+function perfAnalysisHtml() {
+  const deptEmps = state.employees.filter(e => perfDept === 'All' || e.dept === perfDept);
+  const counts = {};
+  PERF_BANDS.forEach(b => counts[b.name] = 0);
+  deptEmps.forEach(e => counts[perfExplain(e.id).band.name]++);
+  const bandSlices = PERF_BANDS.map(b => ({ label: b.name, value: counts[b.name], color: BAND_COLORS[b.name] }));
+
+  if (!perfEmpId || !emp(perfEmpId)) perfEmpId = state.employees[0] ? state.employees[0].id : null;
+  const pe = emp(perfEmpId);
+  const ex = pe ? perfExplain(pe.id) : null;
+  const empOpts = state.employees.map(e => `<option value="${e.id}" ${e.id === perfEmpId ? 'selected' : ''}>${esc(e.name)} (${esc(e.dept)})</option>`).join('');
+  const deptOpts = ['All', ...DEPTS].map(d => `<option ${d === perfDept ? 'selected' : ''}>${d}</option>`).join('');
+  const cls = ex ? (ex.band.name === 'Excellent' ? 'Active' : ex.band.name === 'Low' ? 'Rejected' : 'Pending') : '';
+
+  return `
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Team performance by band <span class="muted" style="font-weight:400">${deptEmps.length} employees</span></h3>
+      <select onchange="setPerfDept(this.value)">${deptOpts}</select>
+    </div>
+    ${pieSvg(bandSlices)}
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Individual performance</h3>
+      <select onchange="setPerfEmp(this.value)">${empOpts}</select>
+    </div>
+    ${ex ? `<div class="grid2">
+      <div>
+        <p class="hint" style="margin-bottom:10px">How ${esc(pe.name)}'s score is built (goals 40%, manager rating 60%)</p>
+        ${pieSvg(individualSlices(ex))}
+      </div>
+      <div>
+        <p style="margin-bottom:10px"><b>${esc(pe.name)}</b>: <span class="badge ${cls}">${ex.band.name}</span> score ${Math.round(ex.score)} / 100</p>
+        <p class="hint">Click Explain next to this employee in the reviews table below for the full reasons and suggested action.</p>
+      </div>
+    </div>` : '<p class="muted">No employees yet.</p>'}
+  </div>`;
+}
+
+/* ---------- Retention Radar: explainable attrition risk, with a raise simulator ---------- */
+const RISK_COLORS = { High: '#b91c1c', Medium: '#b45309', Low: '#15803d' };
+const RISK_BADGE = { High: 'Rejected', Medium: 'Pending', Low: 'Active' };
+const RISK_ACTION = {
+  High: 'Hold a retention conversation this week and review pay and growth options',
+  Medium: 'Check in one-to-one and confirm career goals for the next cycle',
+  Low: 'No action needed; keep regular check-ins'
+};
+let radarEmpId = null;
+let radarRaise = 0;
+let radarDept = 'All';
+function setRadarEmp(v) { radarEmpId = v; radarRaise = 0; render(); }
+function setRaise(v) { radarRaise = Number(v) || 0; render(); }
+function setRadarDept(v) { radarDept = v; render(); }
+function exportRadar() {
+  exportCSV('retention-risk.csv', ['Name', 'Department', 'Role', 'Score', 'Level', 'Reasons', 'Suggested action'],
+    radarActive(radarDept).map(x => [x.e.name, x.e.dept, x.e.role, x.r.score, x.r.level, x.r.reasons.join('; '), RISK_ACTION[x.r.level]]));
+  toast('Retention list exported.');
+}
+
+function deptAvgSalary(dept) {
+  const list = state.employees.filter(e => e.dept === dept);
+  return list.length ? list.reduce((s, e) => s + e.salary, 0) / list.length : 0;
+}
+// Each signal adds points, so every score can be explained to HR
+function retentionRisk(e, salary = e.salary) {
+  const ex = perfExplain(e.id);
+  const reasons = [];
+  let score = 0;
+  if (ex.score < 40) { score += 35; reasons.push('Low performance score (' + Math.round(ex.score) + ' / 100)'); }
+  const avg = deptAvgSalary(e.dept);
+  if (avg && salary < avg * 0.85) {
+    score += 25;
+    reasons.push('Salary is ' + Math.round((1 - salary / avg) * 100) + '% below the ' + e.dept + ' average');
+  }
+  const leaves = state.leaves.filter(l => l.empId === e.id).length;
+  if (leaves >= 2) { score += 15; reasons.push(leaves + ' leave requests on record'); }
+  if (!ex.rated) { score += 10; reasons.push('No manager review completed yet'); }
+  score = Math.min(100, score);
+  const level = score >= 50 ? 'High' : score >= 25 ? 'Medium' : 'Low';
+  return { score, level, reasons };
+}
+function radarActive(dept = 'All') {
+  return state.employees.filter(e => e.status === 'Active' && (dept === 'All' || e.dept === dept))
+    .map(e => ({ e, r: retentionRisk(e) }))
+    .sort((a, b) => b.r.score - a.r.score);
+}
+
+function retentionView() {
+  const all = radarActive(radarDept);
+  const counts = { High: 0, Medium: 0, Low: 0 };
+  all.forEach(x => counts[x.r.level]++);
+  const slices = ['High', 'Medium', 'Low'].map(k => ({ label: k + ' risk', value: counts[k], color: RISK_COLORS[k] }));
+  const top = all.slice(0, 15);
+  if (!radarEmpId || !emp(radarEmpId)) radarEmpId = top[0] ? top[0].e.id : (state.employees[0] || {}).id;
+  const pe = emp(radarEmpId);
+  const before = pe ? retentionRisk(pe) : null;
+  const newSalary = pe ? Math.round(pe.salary * (1 + radarRaise / 100)) : 0;
+  const after = pe ? retentionRisk(pe, newSalary) : null;
+  const empOpts = state.employees.map(e => `<option value="${e.id}" ${e.id === radarEmpId ? 'selected' : ''}>${esc(e.name)} (${esc(e.dept)})</option>`).join('');
+  const deptOpts = ['All', ...DEPTS].map(d => `<option ${d === radarDept ? 'selected' : ''}>${d}</option>`).join('');
+  const rows = top.map(x => `<tr>
+      <td><b>${esc(x.e.name)}</b><div class="muted" style="font-size:12px">${esc(x.e.dept)} · ${esc(x.e.role)}</div></td>
+      <td><div class="bar"><span style="width:${x.r.score}%;background:${RISK_COLORS[x.r.level]}"></span></div> <span class="muted">${x.r.score}</span></td>
+      <td><span class="badge ${RISK_BADGE[x.r.level]}">${x.r.level}</span></td>
+      <td style="white-space:normal;min-width:240px">${esc(x.r.reasons.join('; ') || 'No risk signals')}</td>
+      <td style="white-space:normal;min-width:220px">${esc(RISK_ACTION[x.r.level])}</td></tr>`).join('');
+  return `
+  <div class="cards">
+    <div class="card"><div class="label">High risk</div><div class="num">${counts.High}</div></div>
+    <div class="card amber"><div class="label">Medium risk</div><div class="num">${counts.Medium}</div></div>
+    <div class="card green"><div class="label">Low risk</div><div class="num">${counts.Low}</div></div>
+    <div class="card blue"><div class="label">Active employees scored</div><div class="num">${all.length}</div></div>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Risk distribution <span class="muted" style="font-weight:400">${radarDept === 'All' ? 'company-wide' : esc(radarDept)}</span></h3>
+      <select onchange="setRadarDept(this.value)">${deptOpts}</select>
+    </div>
+    <div class="grid2">
+      <div>${pieSvg(slices)}</div>
+      <div>
+        <p class="hint" style="margin-bottom:8px">How the score is built. Each signal adds points, up to 100.</p>
+        ${listHtml(['Low performance score below 40: 35 points', 'Salary 15% or more below department average: 25 points', '2 or more leave requests on record: 15 points', 'No manager review completed yet: 10 points', 'High risk is 50 or more, Medium is 25 to 49'])}
+      </div>
+    </div>
+  </div>
+  <div class="panel">
+    <div class="panel-head">
+      <h3>Highest-risk employees <span class="muted" style="font-weight:400">top ${Math.min(15, all.length)} of ${all.length}</span></h3>
+      <button class="btn light" onclick="exportRadar()">Export CSV</button>
+    </div>
+    <table>
+      <tr><th>Employee</th><th>Score</th><th>Level</th><th>Why</th><th>Suggested action</th></tr>
+      ${rows || '<tr><td colspan="5" class="muted">No employees in this department.</td></tr>'}
+    </table>
+  </div>
+  <div class="panel">
+    <div class="panel-head"><h3>Raise simulator</h3><select onchange="setRadarEmp(this.value)">${empOpts}</select></div>
+    ${pe ? `<div class="grid2">
+      <div>
+        <p style="margin-bottom:10px">${esc(pe.name)} earns <b>${money(pe.salary)}</b> per month.</p>
+        <label class="hint">Proposed raise: <b>${radarRaise}%</b>, new salary ${money(newSalary)}, extra cost ${money(newSalary - pe.salary)} per month</label>
+        <input type="range" min="0" max="30" step="1" value="${radarRaise}" style="width:100%;margin-top:8px" onchange="setRaise(this.value)">
+        <p class="hint" style="margin-top:8px">Estimate only. It does not model approvals or budget limits.</p>
+      </div>
+      <div class="answer" style="margin-top:0">
+        <p>Risk now: <span class="badge ${RISK_BADGE[before.level]}">${before.level}</span> (${before.score} / 100)</p>
+        <p style="margin-top:8px">Risk after raise: <span class="badge ${RISK_BADGE[after.level]}">${after.level}</span> (${after.score} / 100)</p>
+        <p class="hint" style="margin-top:10px">${after.reasons.length ? 'Remaining reasons: ' + esc(after.reasons.join('; ')) : 'No risk signals remain.'}</p>
+      </div>
+    </div>` : '<p class="muted">No employees yet.</p>'}
+  </div>`;
+}
+
+/* ---------- HR Assistant (rule-based, reads this app's data; no API key needed) ---------- */
+const PRONOUNS = ['he', 'she', 'him', 'her', 'his', 'hers', 'they', 'them', 'their', 'it'];
+
+function assistant() {
+  const first = state.employees[0] ? state.employees[0].name : 'Aarav Mehta';
+  const suggestions = [
+    'Summary of HR today',
+    'Who is pending approval?',
+    'Who checked in today?',
+    'Who has not checked out?',
+    'Who is absent today?',
+    'Top 5 highest salaries',
+    'Total monthly payroll',
+    'Overlapping leave',
+    'Employees in Engineering',
+    'Leave for ' + first,
+    'Payroll for ' + first,
+    'Is ' + first + ' present today?'
+  ];
+  return `
+  ${assistantCallPanel()}
+  <div class="panel">
+    <h3>Ask a question</h3>
+    <p class="hint">Ask in your own words, or click a suggestion. The assistant remembers the last employee you asked about, so you can follow up with "his leave" or "their salary".</p>
+    <div class="chips">
+      ${suggestions.map(s => `<button data-q="${esc(s)}" onclick="ask(this.dataset.q)">${esc(s)}</button>`).join('')}
+    </div>
+    <form class="inline" onsubmit="return askQ(event)">
+      <input name="q" placeholder="Type your question..." style="flex:1;min-width:280px" required>
+      <button class="btn" type="submit">Ask</button>
+    </form>
+    ${assistantAnswer ? `<div class="answer">${assistantAnswer}</div>` : ''}
+  </div>`;
+}
+function askQ(ev) {
+  ev.preventDefault();
+  ask(new FormData(ev.target).get('q'));
+  return false;
+}
+function ask(text) {
+  assistantAnswer = answerQuestion(text);
+  render();
+}
+function listHtml(items, max = 30) {
+  if (!items.length) return '<p class="muted">None.</p>';
+  const shown = items.slice(0, max).map(i => `<li style="margin-bottom:4px">${i}</li>`).join('');
+  const more = items.length > max ? `<li class="muted">...and ${items.length - max} more</li>` : '';
+  return `<ul style="margin:8px 0 0 20px">${shown}${more}</ul>`;
+}
+function findEmployees(q) {
+  const byName = state.employees.filter(e => q.includes(' ' + e.name.toLowerCase() + ' '));
+  if (byName.length) return byName;
+  const byEmail = state.employees.filter(e => q.includes(' ' + e.email.toLowerCase() + ' '));
+  if (byEmail.length) return byEmail;
+  const words = q.trim().split(' ');
+  return state.employees.filter(e => words.includes(e.name.toLowerCase().split(' ')[0]));
+}
+function profileHtml(e) {
+  const rec = state.attendance.find(a => a.empId === e.id && a.date === today());
+  const attendanceText = rec
+    ? `checked in today at ${rec.inTime}${rec.outTime ? ', checked out at ' + rec.outTime : ', not checked out yet'}`
+    : 'not checked in today';
+  return `<p><b>${esc(e.name)}</b> is a ${esc(e.role)} in ${esc(e.dept)} (${esc(e.email)}). Status: ${e.status}. Monthly salary ${money(e.salary)}. Today: ${attendanceText}.</p>`;
+}
+function attendanceForEmp(e) {
+  const rec = state.attendance.find(a => a.empId === e.id && a.date === today());
+  if (!rec) return `<p><b>${esc(e.name)}</b> has not checked in today.</p>`;
+  return `<p><b>${esc(e.name)}</b> checked in today at ${rec.inTime}${rec.outTime ? ' and checked out at ' + rec.outTime : ' and has not checked out yet'}.</p>`;
+}
+function checkedInIds() {
+  return new Set(state.attendance.filter(a => a.date === today()).map(a => a.empId));
+}
+function checkedInHtml() {
+  const list = state.attendance.filter(a => a.date === today());
+  return `<p><b>${list.length}</b> employee(s) checked in today.</p>` +
+    listHtml(list.map(a => `${esc(empName(a.empId))} (in ${a.inTime}${a.outTime ? ', out ' + a.outTime : ''})`));
+}
+function forgotHtml() {
+  const open = state.attendance.filter(a => a.date === today() && !a.outTime);
+  return `<p><b>${open.length}</b> employee(s) checked in today but have not checked out.</p>` +
+    listHtml(open.map(a => esc(empName(a.empId))));
+}
+function absentHtml() {
+  const inIds = checkedInIds();
+  const list = state.employees.filter(e => e.status === 'Active' && !inIds.has(e.id));
+  return `<p><b>${list.length}</b> active employee(s) have not checked in today.</p>` +
+    listHtml(list.map(e => `${esc(e.name)} (${esc(e.dept)})`));
+}
+function pendingHtml() {
+  const p = state.leaves.filter(l => l.status === 'Pending');
+  return `<p><b>${p.length}</b> leave request(s) waiting for approval.</p>` +
+    listHtml(p.map(l => `${esc(empName(l.empId))}: ${esc(l.type)}, ${l.from} to ${l.to}`));
+}
+function overlapHtml() {
+  const pairs = [];
+  state.leaves.forEach((a, i) => state.leaves.forEach((b, j) => {
+    if (j > i && a.empId === b.empId && a.from <= b.to && b.from <= a.to)
+      pairs.push(`${esc(empName(a.empId))}: ${a.from} to ${a.to} overlaps ${b.from} to ${b.to}`);
+  }));
+  return `<p><b>${pairs.length}</b> overlapping leave pair(s) found.</p>` + listHtml(pairs);
+}
+function summaryHtml() {
+  const active = state.employees.filter(e => e.status === 'Active').length;
+  const avg = state.employees.length ? state.employees.reduce((s, e) => s + e.salary, 0) / state.employees.length : 0;
+  const pending = state.leaves.filter(l => l.status === 'Pending').length;
+  return `<p>Headcount is <b>${state.employees.length}</b> (${active} active). Checked in today: <b>${checkedInIds().size}</b>. Pending leave requests: <b>${pending}</b>. Average monthly salary: <b>${money(avg)}</b>.</p>`;
+}
+function payslipHtml(e) {
+  const p = payOf(e.salary);
+  return `<p><b>${esc(e.name)}</b> (monthly estimate): basic ${money(p.basic)}, HRA ${money(p.hra)}, allowances ${money(p.allow)}, gross ${money(p.gross)}, PF ${money(p.pf)}, <b>net ${money(p.net)}</b>.</p>`;
+}
+function totalPayrollHtml() {
+  const net = state.employees.filter(e => e.status === 'Active').reduce((s, e) => s + payOf(e.salary).net, 0);
+  return `<p>Total monthly net payout for active employees: <b>${money(net)}</b> (estimate).</p>`;
+}
+function rankHtml(high) {
+  const arr = [...state.employees].sort((a, b) => high ? b.salary - a.salary : a.salary - b.salary).slice(0, 5);
+  return `<p>${high ? 'Highest' : 'Lowest'} monthly salaries:</p>` +
+    listHtml(arr.map(e => `${esc(e.name)} (${esc(e.role)}): ${money(e.salary)}`));
+}
+function averageSalaryHtml() {
+  const avg = state.employees.reduce((s, e) => s + e.salary, 0) / Math.max(state.employees.length, 1);
+  return `<p>Average monthly salary across all employees is <b>${money(avg)}</b>.</p>`;
+}
+function leaveForEmp(e) {
+  const ls = state.leaves.filter(l => l.empId === e.id);
+  const pending = ls.filter(l => l.status === 'Pending').length;
+  return `<p><b>${esc(e.name)}</b> has ${ls.length} leave request(s), ${pending} pending.</p>` +
+    listHtml(ls.map(l => `${esc(l.type)}, ${l.from} to ${l.to}: ${l.status}`));
+}
+function leaveSummaryHtml() {
+  const count = s => state.leaves.filter(l => l.status === s).length;
+  const types = {};
+  state.leaves.forEach(l => types[l.type] = (types[l.type] || 0) + 1);
+  return `<p>${state.leaves.length} leave requests in total: <b>${count('Pending')}</b> pending, <b>${count('Approved')}</b> approved, <b>${count('Rejected')}</b> rejected.</p>` +
+    listHtml(Object.entries(types).map(([k, v]) => `${esc(k)} leave: ${v}`));
+}
+function deptHtml(d) {
+  const list = state.employees.filter(e => e.dept === d);
+  return `<p><b>${list.length}</b> employee(s) in ${esc(d)}.</p>` +
+    listHtml(list.map(e => `${esc(e.name)}, ${esc(e.role)}`));
+}
+function deptCountsHtml() {
+  return listHtml(DEPTS.map(d => `${esc(d)}: ${state.employees.filter(e => e.dept === d).length} employee(s)`));
+}
+const HELP_TEXT = `<p>I can answer questions about employees, attendance, leave, and payroll. Click a suggestion above or ask in your own words, for example "who is absent today?" or "leave for Aarav". If a name matches more than one person, I will ask you for the full name.</p>`;
+
+function answerQuestion(raw) {
+  const q = ' ' + raw.toLowerCase().replace(/'s\b/g, '').replace(/[^a-z0-9@.\s]/g, ' ').replace(/\s+/g, ' ').trim() + ' ';
+  const words = q.trim().split(' ');
+  const has = (...keys) => keys.some(k => words.some(w => w.startsWith(k)));
+
+  // 1. Greetings and help
+  let who = findEmployees(q);
+  if (!who.length && words.some(w => ['hi', 'hello', 'hey', 'help'].includes(w))) return HELP_TEXT;
+
+  // 2. Narrow an ambiguous first name using a department in the question, or ask for the full name
+  const deptNamed = DEPTS.find(d => q.includes(' ' + d.toLowerCase() + ' '));
+  if (who.length > 1 && deptNamed) who = who.filter(e => e.dept === deptNamed);
+  if (who.length > 1) {
+    return `<p>${who.length} employees match that name. Please use the full name or email:</p>` +
+      listHtml(who.map(e => `${esc(e.name)} (${esc(e.dept)}, ${esc(e.email)})`));
+  }
+
+  // 3. "my" / "I" means the person chosen in the chat box; pronouns mean the last employee discussed
+  if (!who.length && currentEmpId && emp(currentEmpId) && words.some(w => ['my', 'mine', 'i'].includes(w))) {
+    who = [emp(currentEmpId)];
+  }
+  if (!who.length && words.some(w => PRONOUNS.includes(w)) && lastEmpId && emp(lastEmpId)) {
+    who = [emp(lastEmpId)];
+  }
+  const e = who[0] || null;
+  if (e) lastEmpId = e.id;
+
+  // 3f. Calls (ATS)
+  if (!e && has('call')) return callText();
+
+  // 3e. ATS insights
+  if (!e && has('funnel', 'conversion', 'stages', 'stage')) return funnelText();
+  if (!e && has('source', 'referral', 'linkedin', 'campus', 'walk', 'origin', 'channel') || (!e && words.includes('come') && words.includes('from'))) return sourceText();
+  if (!e && has('match', 'fit', 'suitable', 'qualified')) return topMatchText();
+  if (!e && has('time') && has('hire', 'hiring')) {
+    const avg = avgTimeToHire();
+    return avg === null ? '<p>No completed hires with dates yet.</p>' : `<p>Average time to hire is <b>${avg} days</b> from application to hire.</p>`;
+  }
+
+  // 3a. Interview schedule (ATS)
+  if (!e && has('interview')) {
+    const isToday = has('today');
+    const list = state.interviews
+      .filter(i => i.status === 'Scheduled' && (!isToday || i.date === today()))
+      .sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time));
+    const label = isToday ? 'interview(s) scheduled today' : 'upcoming interview(s)';
+    return `<p><b>${list.length}</b> ${label}.</p>` +
+      listHtml(list.map(i => `${i.date} ${i.time}: ${esc(candName(i.candId))} with ${esc(empName(i.interviewer))} (${esc(i.mode)})`));
+  }
+
+  // 3d. Retention radar (attrition risk)
+  if (has('attrit', 'retention', 'churn', 'resign', 'quit', 'leaving', 'flight', 'turnover')) {
+    if (e) {
+      const r = retentionRisk(e);
+      return `<p><b>${esc(e.name)}</b> has <b>${r.level.toLowerCase()}</b> retention risk (score ${r.score} / 100).</p>` +
+        listHtml(r.reasons.length ? r.reasons.map(x => esc(x)) : ['No risk signals found']);
+    }
+    const high = radarActive().filter(x => x.r.level === 'High');
+    return `<p><b>${high.length}</b> employee(s) at high retention risk.</p>` +
+      listHtml(high.slice(0, 10).map(x => `${esc(x.e.name)} (${esc(x.e.dept)}): ${esc(x.r.reasons.join('; '))}`));
+  }
+
+  // 3c. Performance explanations (PMS)
+  const perfWords = ['perform', 'performance', 'performing', 'explain', 'why', 'reason', 'reasons',
+                     'good', 'strong', 'excellent', 'low', 'poor', 'weak', 'underperforming', 'struggling'];
+  if (e && words.some(w => perfWords.includes(w) || w.startsWith('perform'))) {
+    const ex = perfExplain(e.id);
+    return `<p><b>${esc(e.name)}</b> is performing <b>${ex.band.name.toLowerCase()}</b> (score ${ex.score} / 100).</p>` +
+      listHtml(ex.strengths.map(s => 'Strength: ' + esc(s)).concat(ex.concerns.map(c => 'Concern: ' + esc(c)))) +
+      `<p style="margin-top:8px">Suggested action: ${esc(ex.action)}</p>`;
+  }
+  if (!e && words.some(w => ['low', 'poor', 'weak', 'underperforming', 'underperformers', 'struggling'].includes(w))) {
+    return lowPerformersHtml();
+  }
+  if (!e && words.some(w => ['good', 'strong', 'excellent', 'top', 'best'].includes(w)) &&
+      words.some(w => ['performer', 'performers', 'performance', 'performing'].includes(w))) {
+    return topPerformersHtml();
+  }
+
+  // 3b. Recruitment (ATS) and performance (PMS)
+  if (!e && has('job', 'opening', 'vacanc', 'hiring', 'position')) {
+    const open = state.jobs.filter(j => j.status === 'Open');
+    return `<p><b>${open.length}</b> open job(s).</p>` +
+      listHtml(open.map(j => `${esc(j.title)} (${esc(j.dept)}, ${esc(j.location)}): ${j.openings} opening(s)`));
+  }
+  if (!e && has('candidate', 'applicant', 'interview', 'offer', 'hired', 'pipeline')) {
+    return `<p>Candidate pipeline for ${state.candidates.length} applicant(s):</p>` +
+      listHtml(STAGES.map(s => `${s}: ${state.candidates.filter(c => c.stage === s).length}`));
+  }
+  if (has('goal', 'review', 'rating', 'appraisal', 'performance', 'kpi', 'progress')) {
+    if (e) {
+      const gs = state.goals.filter(g => g.empId === e.id);
+      const rv = state.reviews.find(r => r.empId === e.id);
+      const reviewText = rv && rv.rating ? `rated ${rv.rating} / 5 in the Q4 2026 review` : 'review not completed yet';
+      return `<p><b>${esc(e.name)}</b> is ${reviewText}.</p>` +
+        listHtml(gs.map(g => `${esc(g.title)}: ${g.progress}% complete`));
+    }
+    const avgP = Math.round(state.goals.reduce((s, g) => s + g.progress, 0) / Math.max(state.goals.length, 1));
+    return `<p>Average manager rating is <b>${avgRating() ? avgRating().toFixed(2) : 'not available'}</b> / 5 across completed reviews. Average goal progress is <b>${avgP}%</b>.</p>`;
+  }
+
+  // 4. Company-wide questions
+  if (has('overlap', 'conflict', 'clash', 'double')) return overlapHtml();
+  if (!e && has('pending', 'approv', 'waiting', 'awaiting')) return pendingHtml();
+  if (!e && has('summary', 'overview', 'report')) return summaryHtml();
+  if (!e && has('inactive', 'deactivated')) {
+    const list = state.employees.filter(x => x.status === 'Inactive');
+    return `<p><b>${list.length}</b> inactive employee(s).</p>` + listHtml(list.map(x => `${esc(x.name)} (${esc(x.dept)})`));
+  }
+
+  // 5. Attendance (per employee or company-wide)
+  if (e && has('present', 'checked', 'check', 'attendance', 'absent', 'forgot')) return attendanceForEmp(e);
+  if (!e && (has('forgot', 'missing') || (words.includes('out') && has('check')))) return forgotHtml();
+  if (!e && has('absent', 'absence')) return absentHtml();
+  if (!e && has('present', 'checked', 'check', 'attendance')) return checkedInHtml();
+
+  // 6. Payroll
+  if (has('payroll', 'salary', 'pay', 'net', 'gross', 'pf', 'ctc', 'income', 'package', 'earn')) {
+    if (e) return payslipHtml(e);
+    if (has('highest', 'top', 'max', 'most', 'richest')) return rankHtml(true);
+    if (has('lowest', 'min', 'least')) return rankHtml(false);
+    if (has('average', 'avg', 'mean')) return averageSalaryHtml();
+    return totalPayrollHtml();
+  }
+
+  // 7. Leave
+  if (has('leave', 'holiday', 'vacation', 'time off')) {
+    if (has('apply', 'submit', 'request')) {
+      return `<p>To apply for leave, open the <b>Leave</b> page from the sidebar, choose the employee, leave type, dates, and reason, then click Submit request. HR will approve or reject it there.</p>`;
+    }
+    if (e) return has('balance', 'left', 'remaining', 'available') ? balanceHtml(e) : leaveForEmp(e);
+    return leaveSummaryHtml();
+  }
+
+  // 8. Departments and headcount
+  if (!e && deptNamed) return deptHtml(deptNamed);
+  if (!e && has('department', 'dept', 'team')) return deptCountsHtml();
+  if (!e && has('how many', 'count', 'total', 'headcount', 'number')) {
+    if (has('active')) return `<p><b>${state.employees.filter(x => x.status === 'Active').length}</b> active employees.</p>`;
+    return `<p><b>${state.employees.length}</b> employees in total.</p>`;
+  }
+
+  // 9. A named employee with no specific topic: show their profile
+  if (e) return profileHtml(e);
+
+  return `<p>Sorry, I did not understand that. Try one of the suggestions above, or include an employee's name, a department, or a topic such as leave, attendance, or payroll.</p>`;
+}
+
+/* ---------- leave balance (demo entitlements per year) ---------- */
+const ENTITLEMENT = { Casual: 12, Sick: 10, Earned: 15 };
+function daysBetween(a, b) { return Math.round((new Date(b) - new Date(a)) / 86400000) + 1; }
+function balanceHtml(e) {
+  const used = {};
+  state.leaves.filter(l => l.empId === e.id && l.status === 'Approved')
+    .forEach(l => used[l.type] = (used[l.type] || 0) + daysBetween(l.from, l.to));
+  const rows = Object.entries(ENTITLEMENT).map(([t, n]) =>
+    `${t}: ${Math.max(n - (used[t] || 0), 0)} of ${n} days left`);
+  return `<p>Leave balance for <b>${esc(e.name)}</b> (based on approved requests in this demo):</p>` + listHtml(rows);
+}
+
+/* ---------- floating chat widget ---------- */
+let botOpen = false;
+let botLog = [];
+let currentEmpId = null;
+
+function toggleBot() {
+  botOpen = !botOpen;
+  document.getElementById('bot-panel').classList.toggle('open', botOpen);
+  if (botOpen) {
+    botPopulateWho();
+    botRenderLog();
+    document.querySelector('#bot-panel input').focus();
+  }
+}
+function botPopulateWho() {
+  const sel = document.getElementById('bot-who');
+  if (sel.options.length) return;
+  sel.innerHTML = '<option value="">Just browsing (company-wide)</option>' +
+    state.employees.map(e => `<option value="${e.id}">${esc(e.name)} (${esc(e.dept)})</option>`).join('');
+}
+function setWho(id) {
+  currentEmpId = id || null;
+  lastEmpId = currentEmpId;
+  const html = currentEmpId
+    ? `<p>Hi ${esc(emp(currentEmpId).name)}. I will answer about your own records. Try "my leave balance", "my attendance today", or "my payroll".</p>`
+    : '<p>Showing company-wide information. Choose your name above to ask about your own records.</p>';
+  botLog.push({ from: 'bot', html });
+  botRenderLog();
+}
+function botRenderLog() {
+  if (!botLog.length) {
+    botLog.push({ from: 'bot', html: '<p>Hi! I am the HRMS assistant. Choose your name above, then ask about your leave, attendance, or payroll.</p>' });
+  }
+  const el = document.getElementById('bot-log');
+  el.innerHTML = botLog.map(m => `<div class="msg ${m.from}">${m.html}</div>`).join('');
+  el.scrollTop = el.scrollHeight;
+}
+function botSend(ev) {
+  ev.preventDefault();
+  const input = ev.target.q;
+  const text = input.value.trim();
+  if (!text) return false;
+  botLog.push({ from: 'me', html: esc(text) });
+  botLog.push({ from: 'bot', html: botAnswer(text) });
+  input.value = '';
+  botRenderLog();
+  return false;
+}
+function botAnswer(text) {
+  let a = answerQuestion(text);
+  if (a.includes('did not understand')) {
+    a += '<p>For anything else, please contact HR directly, or try asking about leave, attendance, payroll, or a colleague\'s role.</p>';
+  }
+  return a;
+}
+
+restoreNav();
+document.addEventListener('keydown', e => {
+  if (e.key !== 'Escape') return;
+  if (document.getElementById('confirm-overlay').classList.contains('open')) closeConfirm(false);
+  else if (botOpen) toggleBot();
+});
+render();
+</script>
+</body>
+</html>
