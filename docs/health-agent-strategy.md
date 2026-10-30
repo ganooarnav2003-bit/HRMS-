@@ -89,3 +89,48 @@ Unstructured input to structured logs and profiles; building and re-planning; na
 1. Who is the buyer (the person over 60 or their adult child), and which region and cuisine do we test against?
 2. What is the safety boundary: wellness or medical? Do we have a dietitian or doctor to review plans, and which conditions do we gate?
 3. Can we recruit 8-10 people over 60 and 4-5 family members in two weeks, and what single measurable result in the pilot shows the agent works?
+
+---
+
+# Update: team answers (buyer 15-60, wellness with dietitian, 10 pilot users)
+
+The 60+ recommendation above no longer applies. The buyer base is teenagers to age 60. Assumptions are marked.
+
+## Direction
+- **Launch wedge: adults 30-60** (assumption: they can pay and churn less than teens). Teens 15-17 are a second segment, added with parent consent and a guardian view.
+- 15-60 is still broad (faculty flagged "no defined target"). Confirm the wedge before building.
+- **Wellness only, not medical.** A dietitian reviews the guardrails and plan templates.
+
+## Triage changes
+| # | Was | Now | Reason |
+|---|---|---|---|
+| F04 | Baseline | Baseline, 18+ only for any deficit | Under-18s get balanced-eating plans, no calorie deficit (eating-disorder and growth risk). Dietitian signs off the rules. |
+| F07 | Later | Next release | Habit challenges (steps, water, meals) suit younger users; no real-person videos. |
+| F08 | Baseline (voice) | Baseline (text chat + photo); voice Next | Voice-first was an older-user need. |
+| F11 | Later | Next release | Via Apple Health / Google Fit only; no custom integrations. |
+| F13 | Later | Next release | Dietitian now available; the cost cap is dietitian hours. |
+| F17 | Next | Baseline for under-18 accounts | Parental consent and visibility required. |
+| F18 | Cut | Later (teens, opt-in) | Compete on habits and steps, never weight or calories. |
+| NEW-1 | Baseline | Later | Large-text mode is no longer central. |
+| NEW-4 | n/a | Baseline | Dietitian-reviewed guardrails and red-flag rules (replaces ad hoc safety rules). |
+
+Unchanged: F01-F03, F05 (fasting and supplements still Cut), F09, F10, F12 (one free + one paid plan; parent pays for teens, assumption), F14, F15 Cut, F16 Later.
+
+## Concern changes
+- D03: mostly returns (range is wide); fixed only by choosing the wedge.
+- D04: cost rises (more segments; dietitian time).
+- D05: returns as Next release.
+- D07: higher (minors' data, parental consent, local law to check).
+- D09, D06, D11: unchanged.
+
+## Proactive or chatbot?
+- **Adults 30-60:** chatbot-first with opt-in, light proactive nudges (meal and water reminders, re-planning after a missed day).
+- **Teens:** on-demand chatbot; no weight-focused nudges; guardian can see progress.
+
+## Pilot (10 users, yes)
+Estimate split: 6 adults 30-60, 4 teens 15-17 with parent consent. Same concierge format as before (a team member plays the agent for 2 weeks).
+
+## Open questions
+1. Which wedge do we launch with: adults 30-60, or teens first? Who pays for teens?
+2. Region and cuisine for the food-recognition test set (D11).
+3. How many dietitian hours are available, and what rules do they sign off (e.g. no deficit under 18, calorie floors)?
